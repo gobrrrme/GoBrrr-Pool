@@ -1,0 +1,84 @@
+services:
+  # CKPool Solo Mining Pool
+  ckpool:
+    build:
+      context: ./ckpool
+      dockerfile: Dockerfile
+    container_name: gobrrrpool
+    restart: unless-stopped
+    ports:
+      - "${STRATUM_PORT:-3333}:3333"
+    volumes:
+      - ckpool-socket:/tmp/ckpool
+      - ckpool-logs:/var/log/ckpool
+      # Config is generated dynamically from environment variables
+    env_file:
+      - .env
+      - /etc/ckpool/.env.secrets
+    environment:
+      - TZ=${TZ:-UTC}
+    networks:
+      - mining-network
+    # For host network access to local bitcoind, uncomment:
+    # extra_hosts:
+    #   - "host.docker.internal:host-gateway"
+
+  # WebUI for CKPool
+  webui:
+    build:
+      context: ./webui
+      dockerfile: Dockerfile
+    container_name: poolwebui
+    restart: unless-stopped
+    ports:
+      - "${WEBUI_PORT:-3000}:3000"
+    volumes:
+      - ckpool-socket:/tmp/ckpool
+    env_file:
+      - .env
+      - /etc/ckpool/.env.secrets
+    environment:
+      - NODE_ENV=${NODE_ENV:-production}
+      - PORT=3000
+      - CKPOOL_SOCKET_DIR=/tmp/ckpool
+      - MEMPOOL_API_URL=${MEMPOOL_API_URL:-https://mempool.space/api}
+      - TZ=${TZ:-UTC}
+    networks:
+      - mining-network
+    depends_on:
+      - ckpool
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+  # Optional: Bitcoin Core node
+  # Uncomment to run bitcoind in Docker
+  # bitcoind:
+  #   image: lncm/bitcoind:v26.0
+  #   container_name: bitcoind
+  #   restart: unless-stopped
+  #   ports:
+  #     - "8333:8333"   # P2P
+  #     - "8332:8332"   # RPC
+  #     - "28332:28332" # ZMQ blocks
+  #     - "28333:28333" # ZMQ tx
+  #   volumes:
+  #     - bitcoin-data:/home/bitcoin/.bitcoin
+  #     - ./config/bitcoin.conf:/home/bitcoin/.bitcoin/bitcoin.conf:ro
+  #   networks:
+  #     - mining-network
+
+volumes:
+  ckpool-socket:
+    driver: local
+  ckpool-logs:
+    driver: local
+  # bitcoin-data:
+  #   driver: local
+
+networks:
+  mining-network:
+    driver: bridge

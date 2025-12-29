@@ -1,0 +1,315 @@
+<div class="home-container">
+    <!-- Top Row: Worker Lookup + Pool Stats Side by Side -->
+    <div class="top-cards-row">
+        <!-- Worker Lookup Card -->
+        <div class="top-card lookup-card">
+            <h3>Stratum Host</h3>
+            <div class="stratum-info">
+                <div class="stratum-line">stratum: <span id="stratum-host">loading...</span>:3333</div>
+                <div class="stratum-line">username: BTC address.workername &nbsp; password: x</div>
+            </div>
+            <h3>Worker Lookup</h3>
+            <p>Enter your Bitcoin address to view stats</p>
+            <form class="lookup-form" id="address-form">
+                <div class="input-group">
+                    <input
+                        type="text"
+                        name="address"
+                        id="btc-address"
+                        placeholder="1..., 3..., or bc1..."
+                        required
+                    >
+                    <button type="submit" class="btn btn-primary">Lookup</button>
+                </div>
+            </form>
+            <div class="recent-searches-mini" id="recent-searches">
+                <div class="search-list" id="search-list"></div>
+            </div>
+        </div>
+
+        <!-- Pool Statistics Card -->
+        <div class="top-card pool-card">
+            <h3>Pool Statistics</h3>
+            <div class="pool-stats-grid">
+                <div class="pool-stat">
+                    <div class="pool-stat-value" id="pool-hashrate">-</div>
+                    <div class="pool-stat-label">Pool Hashrate</div>
+                </div>
+                <div class="pool-stat">
+                    <div class="pool-stat-value" id="pool-workers">-</div>
+                    <div class="pool-stat-label">Workers</div>
+                </div>
+                <div class="pool-stat">
+                    <div class="pool-stat-value" id="pool-users">-</div>
+                    <div class="pool-stat-label">Users</div>
+                </div>
+                <div class="pool-stat">
+                    <div class="pool-stat-value" id="pool-best-diff">-</div>
+                    <div class="pool-stat-label">Best Difficulty</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sortable sections wrapper -->
+    <div class="home-sections">
+        <!-- Bitcoin Network Hero Card -->
+        <div class="home-section hero-card" id="bitcoin-hero">
+        <div class="hero-header">
+            <div class="hero-icon">
+                <img src="/images/bitcoin.svg" alt="Bitcoin">
+            </div>
+            <div class="hero-title-section">
+                <h2>Bitcoin Network</h2>
+                <span class="live-indicator">
+                    <span class="live-dot"></span>
+                    mainnet connected
+                </span>
+            </div>
+        </div>
+        <div class="hero-stats">
+            <div class="hero-stat primary">
+                <div class="hero-stat-value" id="hero-block-height">-</div>
+                <div class="hero-stat-label">Block Height</div>
+            </div>
+            <div class="hero-stat">
+                <div class="hero-stat-value" id="hero-network-hashrate">-</div>
+                <div class="hero-stat-label">Network Hashrate</div>
+            </div>
+            <div class="hero-stat">
+                <div class="hero-stat-value" id="hero-difficulty">-</div>
+                <div class="hero-stat-label">Difficulty</div>
+            </div>
+            <div class="hero-stat">
+                <div class="hero-stat-value" id="hero-btc-price">-</div>
+                <div class="hero-stat-label">BTC/USD</div>
+            </div>
+        </div>
+        <div class="hero-details">
+            <div class="hero-detail-row">
+                <div class="hero-detail">
+                    <span class="detail-label">Last Block Mined By</span>
+                    <span class="detail-value" id="hero-last-miner">Loading...</span>
+                </div>
+                <div class="hero-detail">
+                    <span class="detail-label">Block Time</span>
+                    <span class="detail-value" id="hero-block-time">-</span>
+                </div>
+                <div class="hero-detail">
+                    <span class="detail-label">Unconfirmed TXs</span>
+                    <span class="detail-value" id="hero-mempool-txs">-</span>
+                </div>
+            </div>
+            <div class="hero-detail-row">
+                <div class="hero-detail">
+                    <span class="detail-label">Mempool Size</span>
+                    <span class="detail-value" id="hero-mempool">-</span>
+                </div>
+                <div class="hero-detail">
+                    <span class="detail-label">Avg Fee</span>
+                    <span class="detail-value" id="hero-avg-fee">-</span>
+                </div>
+                <div class="hero-detail">
+                    <span class="detail-label">Next Difficulty</span>
+                    <span class="detail-value" id="hero-next-diff">-</span>
+                </div>
+            </div>
+        </div>
+        <div class="recent-blocks">
+            <h4>Recent Blocks</h4>
+            <div class="blocks-list" id="recent-blocks-list">
+                <div class="block-item loading">Loading recent blocks...</div>
+            </div>
+        </div>
+        </div>
+
+        <!-- Fee Rates & Block Reward -->
+        <div class="home-section fee-rates">
+            <h3>Current Block Reward Potential</h3>
+            <div class="fee-grid">
+                <div class="fee-item highlight">
+                    <span class="fee-label">Block Subsidy</span>
+                    <span class="fee-value">3.125 BTC</span>
+                </div>
+                <div class="fee-item highlight">
+                    <span class="fee-label">Est. Fees</span>
+                    <span class="fee-value" id="est-block-fees">-</span>
+                </div>
+                <div class="fee-item highlight">
+                    <span class="fee-label">Total Reward</span>
+                    <span class="fee-value" id="total-reward">-</span>
+                </div>
+            </div>
+            <h4 style="margin-top: 20px; margin-bottom: 10px; text-align: center;">Fee Rates (sat/vB)</h4>
+            <div class="fee-grid">
+                <div class="fee-item">
+                    <span class="fee-label">Low</span>
+                    <span class="fee-value" id="fee-low">-</span>
+                </div>
+                <div class="fee-item">
+                    <span class="fee-label">Medium</span>
+                    <span class="fee-value" id="fee-medium">-</span>
+                </div>
+                <div class="fee-item">
+                    <span class="fee-label">High</span>
+                    <span class="fee-value" id="fee-high">-</span>
+                </div>
+            </div>
+            <div style="text-align: center; margin-top: 15px;">
+                <a href="/dashboard" class="btn btn-primary" style="display: inline-block;">View Full Dashboard</a>
+            </div>
+        </div>
+
+        <!-- Pool Hashrate Chart -->
+        <div class="home-section hashrate-section">
+            <h3>Pool Hashrate</h3>
+            <div class="chart-container" id="home-chart-container">
+                <canvas id="home-hashrate-chart"></canvas>
+            </div>
+        </div>
+
+        <!-- Leaderboard -->
+        <div class="home-section leaderboard-section">
+            <h3>Leaderboard - Best Difficulties</h3>
+            <div class="leaderboard-warning">Warning: Worker names appended to addresses will be displayed here!</div>
+            <div class="leaderboard-list" id="leaderboard-list">
+                <div class="leaderboard-item loading">Loading leaderboard...</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    let homeHashrateChart = null;
+
+    document.addEventListener('DOMContentLoaded', function() {
+        // Set stratum hostname based on how user is connecting
+        const stratumHost = document.getElementById('stratum-host');
+        if (stratumHost) {
+            stratumHost.textContent = window.location.hostname;
+        }
+
+        loadBitcoinHeroData();
+        loadPoolStats();
+        loadRecentSearches();
+        loadBlockRewardEstimate();
+        loadHomeHashrateChart();
+        loadLeaderboard();
+
+        // Auto-refresh every 30 seconds
+        setInterval(() => {
+            loadBitcoinHeroData();
+            loadPoolStats();
+            loadBlockRewardEstimate();
+            loadHomeHashrateChart();
+            loadLeaderboard();
+        }, 30000);
+    });
+
+    async function loadPoolStats() {
+        try {
+            const res = await fetch('/api/pool');
+            const data = await res.json();
+
+            if (data.success && data.data) {
+                const pool = data.data;
+                updateElement('pool-hashrate', formatHashrate(pool.hashrate || 0));
+                updateElement('pool-workers', pool.workers || 0);
+                updateElement('pool-users', pool.users || 0);
+                updateElement('pool-best-diff', formatDifficulty(pool.bestDiff || 0));
+            }
+        } catch (err) {
+            console.error('Failed to load pool stats:', err);
+        }
+    }
+
+    async function loadBlockRewardEstimate() {
+        try {
+            const res = await fetch('/api/efficiency');
+            const data = await res.json();
+
+            if (data.success && data.data) {
+                const eff = data.data;
+                updateElement('est-block-fees', eff.estimatedBlockFeesFormatted);
+                updateElement('total-reward', eff.blockReward.toFixed(3) + ' BTC');
+            }
+        } catch (err) {
+            console.error('Failed to load block reward estimate:', err);
+        }
+    }
+
+    async function loadHomeHashrateChart() {
+        try {
+            const res = await fetch('/api/pool');
+            const data = await res.json();
+
+            if (data.success && data.data) {
+                const pool = data.data;
+                const chartData = [
+                    { label: '7d', value: pool.hashrate7d || 0 },
+                    { label: '24h', value: pool.hashrate1d || 0 },
+                    { label: '6h', value: pool.hashrate6h || 0 },
+                    { label: '1h', value: pool.hashrate1h || 0 },
+                    { label: '15m', value: pool.hashrate15m || 0 },
+                    { label: '5m', value: pool.hashrate5m || 0 },
+                    { label: '1m', value: pool.hashrate1m || 0 }
+                ];
+
+                const container = document.getElementById('home-chart-container');
+                const hasData = chartData.some(d => d.value > 0);
+
+                if (!hasData) {
+                    if (homeHashrateChart) {
+                        homeHashrateChart.destroy();
+                        homeHashrateChart = null;
+                    }
+                    container.innerHTML = '<div class="no-chart-data"><p>No hashrate data yet</p><p class="hint">Data appears when miners connect</p></div>';
+                    return;
+                }
+
+                // Restore canvas if needed
+                if (!document.getElementById('home-hashrate-chart')) {
+                    container.innerHTML = '<canvas id="home-hashrate-chart"></canvas>';
+                }
+
+                // Update existing chart data instead of recreating
+                if (homeHashrateChart) {
+                    homeHashrateChart.data.datasets[0].data = chartData.map(d => d.value);
+                    homeHashrateChart.update('none'); // 'none' disables animation for smooth update
+                } else if (typeof initHashrateChart === 'function') {
+                    homeHashrateChart = initHashrateChart(chartData, 'home-hashrate-chart');
+                }
+            }
+        } catch (err) {
+            console.error('Failed to load hashrate chart:', err);
+        }
+    }
+
+    async function loadLeaderboard() {
+        try {
+            const res = await fetch('/api/leaderboard');
+            const data = await res.json();
+
+            const container = document.getElementById('leaderboard-list');
+            if (!container) return;
+
+            if (data.success && data.data && data.data.length > 0) {
+                container.innerHTML = data.data.map((miner, index) => `
+                    <div class="leaderboard-item">
+                        <span class="leaderboard-rank">#${index + 1}</span>
+                        <span class="leaderboard-status ${miner.isOnline ? 'online' : 'offline'}" title="${miner.isOnline ? 'Online' : 'Offline'}"></span>
+                        <span class="leaderboard-worker">${miner.workerName || 'default'}</span>
+                        <span class="leaderboard-miner">${miner.minerType || 'Unknown'}</span>
+                        <span class="leaderboard-hashrate">${miner.hashrateFormatted}</span>
+                        <span class="leaderboard-diff">${miner.bestDiffFormatted}</span>
+                    </div>
+                `).join('');
+            } else {
+                container.innerHTML = '<div class="leaderboard-item loading">No miners yet</div>';
+            }
+        } catch (err) {
+            console.error('Failed to load leaderboard:', err);
+            document.getElementById('leaderboard-list').innerHTML = '<div class="leaderboard-item loading">Failed to load</div>';
+        }
+    }
+</script>

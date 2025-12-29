@@ -1,0 +1,33 @@
+# Dependencies
+node_modules/
+
+# Logs
+*.log
+logs/
+
+# Environment
+.env
+.env.local
+
+# Build artifacts
+dist/
+build/
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Docker
+*.tar
+
+# ckpool build artifacts
+ckpool/src/.deps/
+ckpool/src/*.o
+ckpool/src/ckpool
+ckpool/src/ckproxy
+ckpool/src/ckpmsg
+ckpool/src/notifier

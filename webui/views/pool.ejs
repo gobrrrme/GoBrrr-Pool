@@ -1,0 +1,219 @@
+<div class="pool-container">
+    <h1 class="page-title">Pool Statistics</h1>
+    <% if (pool) { %>
+    <div class="pool-stats">
+        <!-- Main Stats -->
+        <div class="stats-section">
+            <h2>Overview</h2>
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-label">Pool Hashrate</div>
+                    <div class="stat-value"><%= formatHashrate(pool.hashrate) %></div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Active Users</div>
+                    <div class="stat-value"><%= pool.users %></div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Active Workers</div>
+                    <div class="stat-value"><%= pool.workers %></div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Connections</div>
+                    <div class="stat-value"><%= pool.connections || 'N/A' %></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Network Stats -->
+        <div class="stats-section">
+            <h2>Network</h2>
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-label">Next Block</div>
+                    <div class="stat-value"><%= pool.blockHeight || 'N/A' %></div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Network Difficulty</div>
+                    <div class="stat-value"><%= formatDifficulty(pool.networkDiff) %></div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Network Hashrate</div>
+                    <div class="stat-value"><%= formatHashrate(networkHashrate) %></div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Network Share</div>
+                    <div class="stat-value"><%= networkShare > 0 ? (networkShare >= 0.0001 ? networkShare.toFixed(6) + '%' : '< 0.0001%') : 'N/A' %></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Mining Stats -->
+        <div class="stats-section">
+            <h2>Mining</h2>
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-label">Total Shares</div>
+                    <div class="stat-value"><%= pool.shares.toLocaleString() %></div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Accepted Diff Shares</div>
+                    <div class="stat-value"><%= formatDifficulty(pool.accepted) %></div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Rejected Diff Shares</div>
+                    <div class="stat-value"><%= formatDifficulty(pool.rejected) %></div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Best Difficulty</div>
+                    <div class="stat-value highlight"><%= formatDifficulty(pool.bestDiff) %></div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Shares/sec (1m)</div>
+                    <div class="stat-value"><%= pool.sps1.toFixed(2) %></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Pool Uptime -->
+        <div class="stats-section">
+            <h2>Pool Status</h2>
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-label">Uptime</div>
+                    <div class="stat-value"><%= pool.uptime > 0 ? timeAgo(Math.floor(Date.now()/1000) - pool.uptime).replace(' ago', '') : 'N/A' %></div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Started</div>
+                    <div class="stat-value"><%= pool.startTime > 1577836800 ? timeAgo(pool.startTime) : 'N/A' %></div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Last Update</div>
+                    <div class="stat-value"><%= pool.lastUpdate > 1577836800 ? timeAgo(pool.lastUpdate) : 'Just now' %></div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Reject Rate</div>
+                    <div class="stat-value <%= pool.rejected > 0 ? 'warning' : 'success' %>"><%= pool.accepted > 0 ? ((pool.rejected / (pool.accepted + pool.rejected)) * 100).toFixed(2) + '%' : '0%' %></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Hashrate History -->
+        <div class="stats-section">
+            <h2>Hashrate Averages</h2>
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-label">1 Minute</div>
+                    <div class="stat-value"><%= formatHashrate(pool.hashrate1m) %></div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">5 Minutes</div>
+                    <div class="stat-value"><%= formatHashrate(pool.hashrate5m) %></div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">1 Hour</div>
+                    <div class="stat-value"><%= formatHashrate(pool.hashrate1h) %></div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">6 Hours</div>
+                    <div class="stat-value"><%= formatHashrate(pool.hashrate6h) %></div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">24 Hours</div>
+                    <div class="stat-value"><%= formatHashrate(pool.hashrate1d) %></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Block Time Estimation -->
+        <div class="stats-section">
+            <h2>Block Estimation</h2>
+            <div class="estimation-card">
+                <p>Based on current pool hashrate vs network difficulty</p>
+                <div class="estimation-value" id="block-time-estimate">Calculating...</div>
+            </div>
+        </div>
+
+        <% if (minerTypes && minerTypes.length > 0) { %>
+        <!-- Connected Miner Types -->
+        <div class="stats-section">
+            <h2>Connected Miner Types</h2>
+            <div class="miner-types-grid">
+                <% minerTypes.forEach(function(m) { %>
+                <div class="miner-type-card">
+                    <div class="miner-type-name"><%= m.name %></div>
+                    <div class="miner-type-count"><%= m.count %></div>
+                </div>
+                <% }); %>
+            </div>
+        </div>
+        <% } %>
+
+        <!-- Pool Hashrate Chart -->
+        <div class="stats-section">
+            <h2>Pool Hashrate</h2>
+            <div class="chart-container">
+                <% if (pool.hashrate1m > 0 || pool.hashrate5m > 0 || pool.hashrate1h > 0 || pool.hashrate1d > 0) { %>
+                <canvas id="pool-hashrate-chart"></canvas>
+                <% } else { %>
+                <div class="no-chart-data">
+                    <p>No hashrate data available yet.</p>
+                    <p class="hint">Data will appear when miners are connected.</p>
+                </div>
+                <% } %>
+            </div>
+        </div>
+    </div>
+    <% } else { %>
+    <div class="no-data">
+        <p>Unable to load pool statistics.</p>
+        <p>The pool daemon may not be running.</p>
+    </div>
+    <% } %>
+
+    <div class="stats-actions">
+        <a href="/" class="btn btn-secondary">Back to Home</a>
+        <button class="btn btn-primary" onclick="location.reload()">Refresh</button>
+    </div>
+</div>
+
+<script>
+    <% if (pool) { %>
+    // Wait for DOM and main.js to load
+    document.addEventListener('DOMContentLoaded', function() {
+        const poolHashrate = <%= pool.hashrate || 0 %>;
+        const networkDiff = <%= pool.networkDiff || 0 %>;
+
+        if (poolHashrate > 0 && networkDiff > 0) {
+            const secondsPerBlock = (networkDiff * Math.pow(2, 32)) / poolHashrate;
+            document.getElementById('block-time-estimate').textContent = formatTimeEstimate(secondsPerBlock);
+        } else {
+            document.getElementById('block-time-estimate').textContent = 'N/A';
+        }
+
+        // Initialize pool hashrate chart only if there's data
+        <% if (pool.hashrate1m > 0 || pool.hashrate5m > 0 || pool.hashrate1h > 0 || pool.hashrate1d > 0) { %>
+        if (typeof initHashrateChart === 'function') {
+            initHashrateChart([
+                { label: '7d', value: <%= pool.hashrate7d || 0 %> },
+                { label: '24h', value: <%= pool.hashrate1d || 0 %> },
+                { label: '6h', value: <%= pool.hashrate6h || 0 %> },
+                { label: '1h', value: <%= pool.hashrate1h || 0 %> },
+                { label: '15m', value: <%= pool.hashrate15m || 0 %> },
+                { label: '5m', value: <%= pool.hashrate5m || 0 %> },
+                { label: '1m', value: <%= pool.hashrate1m || 0 %> }
+            ], 'pool-hashrate-chart');
+        }
+        <% } %>
+    });
+
+    function formatTimeEstimate(seconds) {
+        if (seconds < 60) return Math.round(seconds) + ' seconds';
+        if (seconds < 3600) return Math.round(seconds / 60) + ' minutes';
+        if (seconds < 86400) return Math.round(seconds / 3600) + ' hours';
+        if (seconds < 2592000) return Math.round(seconds / 86400) + ' days';
+        if (seconds < 31536000) return Math.round(seconds / 2592000) + ' months';
+        return Math.round(seconds / 31536000) + ' years';
+    }
+    <% } %>
+</script>

@@ -1,0 +1,214 @@
+<div class="stats-container">
+    <div class="stats-header">
+        <h1>Worker Statistics</h1>
+        <p class="address-display"><%= address %></p>
+    </div>
+
+    <% if (error) { %>
+    <div class="alert alert-error">
+        <p><%= error %></p>
+        <a href="/" class="btn btn-secondary">Go Back</a>
+    </div>
+    <% } %>
+
+    <% if (user) { %>
+    <div class="user-stats">
+        <!-- Hashrate Overview -->
+        <div class="stats-section">
+            <h2>Hashrate</h2>
+            <div class="stats-grid">
+                <div class="stat-card highlight">
+                    <div class="stat-label">Current (1m avg)</div>
+                    <div class="stat-value"><%= formatHashrate(user.hashrate.current) %></div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">5m Average</div>
+                    <div class="stat-value"><%= formatHashrate(user.hashrate.avg5m) %></div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">1h Average</div>
+                    <div class="stat-value"><%= formatHashrate(user.hashrate.avg1h) %></div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">24h Average</div>
+                    <div class="stat-value"><%= formatHashrate(user.hashrate.avg24h) %></div>
+                </div>
+                <% if (user.hashrate.avg7d > 0) { %>
+                <div class="stat-card">
+                    <div class="stat-label">7d Average</div>
+                    <div class="stat-value"><%= formatHashrate(user.hashrate.avg7d) %></div>
+                </div>
+                <% } %>
+            </div>
+        </div>
+
+        <!-- Shares -->
+        <div class="stats-section">
+            <h2>Shares</h2>
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-label">Accepted</div>
+                    <div class="stat-value success"><%= user.shares.accepted.toLocaleString() %></div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Rejected</div>
+                    <div class="stat-value <%= user.shares.rejected > 0 ? 'warning' : '' %>"><%= user.shares.rejected.toLocaleString() %></div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Stale</div>
+                    <div class="stat-value <%= user.shares.stale > 0 ? 'warning' : '' %>"><%= user.shares.stale.toLocaleString() %></div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Best Difficulty</div>
+                    <div class="stat-value"><%= formatDifficulty(user.bestDiff) %></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Activity -->
+        <div class="stats-section">
+            <h2>Activity</h2>
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-label">Last Share</div>
+                    <div class="stat-value"><%= timeAgo(user.lastShare) %></div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Workers</div>
+                    <div class="stat-value"><%= user.workerCount %></div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Status</div>
+                    <div class="stat-value <%= user.isIdle ? 'warning' : 'success' %>"><%= user.isIdle ? 'Idle' : 'Active' %></div>
+                </div>
+            </div>
+        </div>
+
+        <% if (clients && clients.length > 0) { %>
+        <!-- Connected Clients (with miner detection) -->
+        <div class="stats-section">
+            <h2>Connected Miners</h2>
+            <div class="workers-table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Worker Name</th>
+                            <th>Hashrate</th>
+                            <th>Miner Type</th>
+                            <th>Difficulty</th>
+                            <th>Best Diff</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <% clients.forEach(function(c) { %>
+                        <tr>
+                            <td><%= c.workername || 'default' %></td>
+                            <td><%= formatHashrate((c.dsps1 || 0) * 4294967296) %></td>
+                            <td class="miner-type" title="<%= c.useragent %>"><%= c.miner.name %></td>
+                            <td><%= formatDifficulty(c.diff) %></td>
+                            <td><%= formatDifficulty(c.bestdiff) %></td>
+                            <td class="<%= c.idle ? 'warning' : 'success' %>"><%= c.idle ? 'Idle' : 'Active' %></td>
+                        </tr>
+                        <% }); %>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <% } else if (user.workers && user.workers.length > 0) { %>
+        <!-- Fallback: Workers List (without miner type) -->
+        <div class="stats-section">
+            <h2>Workers</h2>
+            <div class="workers-table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Worker Name</th>
+                            <th>Hashrate</th>
+                            <th>Shares</th>
+                            <th>Best Diff</th>
+                            <th>Last Active</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <% user.workers.forEach(function(w) { %>
+                        <tr>
+                            <td><%= w.name || 'default' %></td>
+                            <td><%= formatHashrate(w.hashrate || 0) %></td>
+                            <td><%= (w.shares || 0).toLocaleString() %></td>
+                            <td><%= formatDifficulty(w.bestdiff || 0) %></td>
+                            <td><%= timeAgo(w.lastshare) %></td>
+                            <td class="<%= w.idle ? 'warning' : 'success' %>"><%= w.idle ? 'Idle' : 'Active' %></td>
+                        </tr>
+                        <% }); %>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <% } %>
+
+        <!-- Hashrate Chart -->
+        <div class="stats-section">
+            <h2>Hashrate History</h2>
+            <div class="chart-container">
+                <% if (user.hashrate.current > 0 || user.hashrate.avg5m > 0 || user.hashrate.avg1h > 0 || user.hashrate.avg24h > 0) { %>
+                <canvas id="hashrate-chart"></canvas>
+                <% } else { %>
+                <div class="no-chart-data">
+                    <p>No hashrate data available yet.</p>
+                    <p class="hint">Data will appear after your miner submits shares.</p>
+                </div>
+                <% } %>
+            </div>
+        </div>
+    </div>
+    <% } else if (!error) { %>
+    <div class="no-data">
+        <h2>Address Not Found</h2>
+        <p>No mining activity found for this Bitcoin address.</p>
+        <p style="color: #888; font-size: 0.9rem; margin-top: 15px;">
+            This could mean:
+        </p>
+        <ul style="color: #888; font-size: 0.9rem; text-align: left; max-width: 400px; margin: 10px auto;">
+            <li>The address has never connected to this pool</li>
+            <li>The miner is not currently active</li>
+            <li>The address was typed incorrectly</li>
+        </ul>
+        <div style="margin-top: 25px;">
+            <a href="/" class="btn btn-primary">Try Another Address</a>
+        </div>
+    </div>
+    <% } %>
+
+    <div class="stats-actions">
+        <a href="/" class="btn btn-secondary">Back to Home</a>
+        <button class="btn btn-primary" onclick="location.reload()">Refresh</button>
+    </div>
+</div>
+
+<script>
+    const address = '<%= address %>';
+    <% if (!error && user) { %>
+    // Wait for DOM and main.js to load
+    document.addEventListener('DOMContentLoaded', function() {
+        if (typeof saveRecentSearch === 'function') {
+            saveRecentSearch(address);
+        }
+        <% if (user.hashrate.current > 0 || user.hashrate.avg5m > 0 || user.hashrate.avg1h > 0 || user.hashrate.avg24h > 0) { %>
+        const chartData = [
+            { label: '24h', value: <%= user.hashrate.avg24h || 0 %> },
+            { label: '1h', value: <%= user.hashrate.avg1h || 0 %> },
+            { label: '5m', value: <%= user.hashrate.avg5m || 0 %> },
+            { label: '1m', value: <%= user.hashrate.current || 0 %> }
+        ];
+        <% if (user.hashrate.avg7d > 0) { %>
+        chartData.unshift({ label: '7d', value: <%= user.hashrate.avg7d %> });
+        <% } %>
+        if (typeof initHashrateChart === 'function') {
+            initHashrateChart(chartData);
+        }
+        <% } %>
+    });
+    <% } %>
+</script>

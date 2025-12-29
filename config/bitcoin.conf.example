@@ -1,0 +1,24 @@
+# Bitcoin Core Configuration Example
+# Copy this to bitcoin.conf and adjust settings
+
+# Network
+server=1
+listen=1
+txindex=1
+
+# RPC Settings
+rpcuser=rpcuser
+rpcpassword=rpcpassword
+rpcallowip=0.0.0.0/0
+rpcbind=0.0.0.0
+
+# ZMQ Notifications (recommended for ckpool)
+zmqpubhashblock=tcp://0.0.0.0:28332
+zmqpubhashtx=tcp://0.0.0.0:28333
+
+# Performance
+dbcache=4096
+maxconnections=125
+
+# Pruning (set to 0 for full node, or size in MB)
+prune=0
