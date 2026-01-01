@@ -1,6 +1,6 @@
 # Go Brrr Pool
 
-A modern, feature-rich WebUI for [ckpool-solo](https://bitbucket.org/ckolivas/ckpool-solo/) Bitcoin mining pool. Designed for solo miners who want to run their own pool with a clean, responsive interface.
+A modern, feature-rich WebUI for [ckpool-solo](https://bitbucket.org/ckolivas/ckpool-solo/) Bitcoin mining pool. Designed for solo miners who want to run their own pool with a clean, responsive interface. This software is free as in FREEDOM!
 
 ![License](https://img.shields.io/badge/license-MIT-blue.svg)
 ![Docker](https://img.shields.io/badge/docker-ready-brightgreen.svg)
@@ -332,4 +332,6 @@ This software is provided as-is. Solo mining is a game of chance - you may mine 
 
 ---
 
-**Go Brrr Pool** - Making Bitcoin mining fun again!
+[SUPPORT ME](https://www.gobrrr.me/donate/)
+
+**Go Brrr Pool** - Solo Mining Done Right!
