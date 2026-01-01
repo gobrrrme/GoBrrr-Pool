@@ -4,9 +4,13 @@ const expressLayouts = require('express-ejs-layouts');
 
 const indexRoutes = require('./routes/index');
 const apiRoutes = require('./routes/api');
+const { rateLimit, protectApi, injectToken } = require('./lib/api-security');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+
+// Trust proxy (for correct IP in rate limiting behind nginx)
+app.set('trust proxy', 1);
 
 // View engine setup
 app.set('view engine', 'ejs');
@@ -23,9 +27,14 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+// Inject API token into all rendered pages
+app.use(injectToken);
+
 // Routes
 app.use('/', indexRoutes);
-app.use('/api', apiRoutes);
+
+// API routes with protection
+app.use('/api', rateLimit, protectApi, apiRoutes);
 
 // Error handler
 app.use((err, req, res, next) => {

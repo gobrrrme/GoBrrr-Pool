@@ -63,12 +63,26 @@
         </div>
     </footer>
 
+    <script>
+        // API Security - token and secure fetch wrapper
+        window.POOL_API_TOKEN = '<%= typeof apiToken !== "undefined" ? apiToken : "" %>';
+
+        // Secure fetch wrapper that includes required headers
+        window.secureFetch = async function(url, options = {}) {
+            const headers = {
+                'X-Pool-Request': 'internal',
+                'X-Pool-Token': window.POOL_API_TOKEN,
+                ...(options.headers || {})
+            };
+            return fetch(url, { ...options, headers });
+        };
+    </script>
     <script src="/js/main.js"></script>
     <script>
         // Load blocks found for navbar
         async function loadNavBlocksFound() {
             try {
-                const res = await fetch('/api/pool');
+                const res = await secureFetch('/api/pool');
                 const data = await res.json();
                 if (data.success && data.data) {
                     const el = document.querySelector('#nav-blocks-found .nav-stat-value');

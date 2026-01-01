@@ -186,7 +186,8 @@ function parseUserStats(raw) {
             rejected: raw.rejected || 0,
             stale: raw.stale || 0
         },
-        bestDiff: raw.bestdiff || raw.best_diff || 0,
+        // Use bestever/bestshare (historical) over bestdiff (session-based)
+        bestDiff: raw.bestever || raw.bestshare || raw.bestdiff || raw.best_diff || 0,
         lastShare: lastShare,
         workers: raw.worker || [],
         workerCount: raw.workers || 0,
@@ -214,7 +215,8 @@ function parseWorkerStats(raw) {
         hashrate5m: hashrate5m,
         hashrate1h: hashrate1h,
         shares: raw.shares || 0,
-        bestDiff: raw.bestdiff || raw.best_diff || 0,
+        // Use bestever/bestshare (historical) over bestdiff (session-based)
+        bestDiff: raw.bestever || raw.bestshare || raw.bestdiff || raw.best_diff || 0,
         lastShare: raw.lastshare || 0,
         isIdle: raw.idle || false
     };
@@ -328,7 +330,8 @@ function parseClientInfo(clientData) {
         miner: parseMinerType(client.useragent),
         diff: client.diff || 0,
         startdiff: client.startdiff || 0,
-        bestdiff: client.bestdiff || 0,
+        // Use bestever/bestshare (historical) over bestdiff (session-based)
+        bestdiff: client.bestever || client.bestshare || client.bestdiff || 0,
         dsps1: client.dsps1 || 0,
         rejected: client.rejected || 0,
         idle: client.idle || false,

@@ -1985,77 +1985,116 @@ body {
     text-align: center;
 }
 
-.leaderboard-list {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-}
-
-.leaderboard-item {
-    display: grid;
-    grid-template-columns: 40px 12px 1fr auto auto auto;
-    gap: 15px;
-    align-items: center;
-    padding: 12px 16px;
-    background: rgba(255, 255, 255, 0.03);
+.leaderboard-table-wrapper {
+    max-height: 480px;
+    overflow-y: auto;
+    border-radius: 8px;
     border: 1px solid rgba(255, 255, 255, 0.05);
-    border-radius: 12px;
-    transition: all 0.2s ease;
 }
 
-.leaderboard-item:hover {
+.leaderboard-table-wrapper::-webkit-scrollbar {
+    width: 8px;
+}
+
+.leaderboard-table-wrapper::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 4px;
+}
+
+.leaderboard-table-wrapper::-webkit-scrollbar-thumb {
+    background: rgba(255, 147, 28, 0.4);
+    border-radius: 4px;
+}
+
+.leaderboard-table-wrapper::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 147, 28, 0.6);
+}
+
+.leaderboard-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.leaderboard-table thead {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+}
+
+.leaderboard-table th {
+    padding: 12px 10px;
+    text-align: left;
+    font-size: 0.85rem;
+    background: #c4c4c4;
+    color: #212121;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+
+.leaderboard-table td {
+    padding: 10px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+}
+
+.leaderboard-table tbody tr:hover {
     background: rgba(255, 147, 28, 0.08);
-    border-color: rgba(255, 147, 28, 0.3);
 }
 
-.leaderboard-item.loading {
-    grid-template-columns: 1fr;
+.leaderboard-table .loading {
     text-align: center;
     color: #888;
+    padding: 30px;
 }
 
-.leaderboard-rank {
+.leaderboard-table .rank-cell {
     color: #ff931c;
     font-weight: 700;
     font-size: 0.95rem;
+    width: 50px;
 }
 
-.leaderboard-worker {
-    color: #c4c4c4;
-    font-size: 0.95rem;
-    font-weight: 600;
+.leaderboard-table .status-cell {
+    width: 30px;
+    text-align: center;
 }
 
-.leaderboard-miner {
-    color: #888;
-    font-size: 0.85rem;
-}
-
-.leaderboard-status {
+.status-indicator {
+    display: inline-block;
     width: 10px;
     height: 10px;
     border-radius: 50%;
     background: #555;
 }
 
-.leaderboard-status.online {
+.status-indicator.online {
     background: #00c853;
     box-shadow: 0 0 6px rgba(0, 200, 83, 0.5);
 }
 
-.leaderboard-status.offline {
+.status-indicator.offline {
     background: #555;
 }
 
-.leaderboard-hashrate {
-    color: #b0b0b0;
-    font-size: 0.85rem;
+.leaderboard-table .worker-cell {
+    color: #c4c4c4;
+    font-weight: 600;
 }
 
-.leaderboard-diff {
+.leaderboard-table .miner-cell {
+    color: #888;
+    font-size: 0.9rem;
+}
+
+.leaderboard-table .hashrate-cell {
+    color: #b0b0b0;
+    font-size: 0.9rem;
+}
+
+.leaderboard-table .diff-cell {
     color: #00d26a;
     font-weight: 700;
-    font-size: 0.95rem;
 }
 
 /* Fee Rates Section */
@@ -2096,58 +2135,46 @@ body {
         grid-template-columns: 1fr;
     }
 
-    .leaderboard-item {
-        grid-template-columns: 35px 10px 1fr auto auto;
-        gap: 10px;
-        padding: 10px 12px;
-    }
-
-    .leaderboard-miner {
+    /* Hide Miner column (3rd) on tablets */
+    .leaderboard-table .miner-cell {
         display: none;
     }
 
-    .leaderboard-worker {
-        font-size: 0.85rem;
+    .leaderboard-table th:nth-child(3),
+    .leaderboard-table td:nth-child(3) {
+        display: none;
     }
 
-    .leaderboard-hashrate {
-        font-size: 0.8rem;
-    }
-
-    .leaderboard-diff {
+    .leaderboard-table th,
+    .leaderboard-table td {
+        padding: 8px 6px;
         font-size: 0.85rem;
     }
 }
 
 @media (max-width: 480px) {
-    .leaderboard-item {
-        grid-template-columns: 30px 8px 1fr auto;
-        gap: 8px;
-        padding: 8px 10px;
+    /* Hide Hashrate column (4th) on mobile */
+    .leaderboard-table .hashrate-cell {
+        display: none;
     }
 
-    .leaderboard-status {
+    .leaderboard-table th:nth-child(4),
+    .leaderboard-table td:nth-child(4) {
+        display: none;
+    }
+
+    .leaderboard-table th,
+    .leaderboard-table td {
+        padding: 6px 4px;
+        font-size: 0.8rem;
+    }
+
+    .status-indicator {
         width: 8px;
         height: 8px;
     }
 
-    .leaderboard-hashrate {
-        display: none;
-    }
-
-    .leaderboard-miner {
-        display: none;
-    }
-
-    .leaderboard-rank {
-        font-size: 0.85rem;
-    }
-
-    .leaderboard-worker {
-        font-size: 0.8rem;
-    }
-
-    .leaderboard-diff {
-        font-size: 0.75rem;
+    .leaderboard-table-wrapper {
+        max-height: 400px;
     }
 }

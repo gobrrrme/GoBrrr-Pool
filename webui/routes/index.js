@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const ckpool = require('../lib/ckpool-client');
 const { parseUserStats, parsePoolStats, parseClientInfo, aggregateMinerTypes, formatHashrate, formatDifficulty, timeAgo } = require('../lib/stats-parser');
+const minerCache = require('../lib/miner-cache');
 
 // Home page with tabs (General Info + Worker Lookup)
 router.get('/', async (req, res) => {
@@ -68,6 +69,28 @@ router.get('/stats/:address', async (req, res) => {
                 timeAgo
             });
         }
+
+        // Enhance bestDiff with historical data from ckpool files
+        // Load cache once for efficiency
+        const cache = minerCache.loadCache();
+
+        // Update each client's bestdiff with historical data
+        // Worker files are named: address.workername (e.g., bc1xxx.BitAxe3)
+        clients.forEach(client => {
+            // Build full worker name as stored in ckpool files
+            const workerSuffix = client.workername?.split('.').pop() || '';
+            const fullWorkerName = workerSuffix ? `${address}.${workerSuffix}` : address;
+            client.bestdiff = minerCache.getBestDiffFromAllSources(fullWorkerName, client.bestdiff, cache);
+        });
+
+        // Update user's bestDiff - use the highest from all their workers
+        let userBestDiff = parsed.bestDiff;
+        clients.forEach(client => {
+            if (client.bestdiff > userBestDiff) {
+                userBestDiff = client.bestdiff;
+            }
+        });
+        parsed.bestDiff = userBestDiff;
 
         res.render('stats', {
             error: null,

@@ -218,7 +218,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
 async function refreshDashboard() {
     try {
-        const res = await fetch('/api/efficiency');
+        const res = await secureFetch('/api/efficiency');
         const { data } = await res.json();
 
         if (!data) return;

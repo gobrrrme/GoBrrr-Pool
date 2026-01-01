@@ -34,6 +34,8 @@ services:
       - "${WEBUI_PORT:-3000}:3000"
     volumes:
       - ckpool-socket:/tmp/ckpool
+      - webui-data:/app/data
+      - ckpool-logs:/var/log/ckpool:ro
     env_file:
       - .env
       - /etc/ckpool/.env.secrets
@@ -75,6 +77,8 @@ volumes:
   ckpool-socket:
     driver: local
   ckpool-logs:
+    driver: local
+  webui-data:
     driver: local
   # bitcoin-data:
   #   driver: local

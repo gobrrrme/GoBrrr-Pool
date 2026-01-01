@@ -25,10 +25,10 @@ function initTabs() {
 // Load Bitcoin Hero Data
 async function loadBitcoinHeroData() {
     try {
-        // Load network stats and price in parallel
+        // Load network stats and price in parallel (use secureFetch for protected API)
         const [networkRes, priceRes] = await Promise.all([
-            fetch('/api/network'),
-            fetch('/api/price')
+            window.secureFetch('/api/network'),
+            window.secureFetch('/api/price')
         ]);
 
         const networkData = await networkRes.json();

@@ -243,10 +243,13 @@ router.get('/leaderboard', async (req, res) => {
         }
 
         // Update persistent cache with current client data (stores miner types for later)
-        const cache = minerCache.updateFromClients(
+        let cache = minerCache.updateFromClients(
             clientsData?.clients || [],
             parseMinerType
         );
+
+        // Update best difficulties cache (stores highest value ever seen)
+        cache = minerCache.updateBestDiffs(workersData.workers, cache);
 
         // Build set of currently connected workers
         const connectedWorkers = new Set();
@@ -260,9 +263,21 @@ router.get('/leaderboard', async (req, res) => {
 
         // Get stats for each worker and sort by best difficulty
         const leaderboard = workersData.workers
-            .filter(worker => worker.bestdiff && worker.bestdiff > 0)
             .map(worker => {
                 const fullName = worker.worker || worker.workername || '';
+                // Get the highest best diff from API
+                const ckpoolBest = Math.max(
+                    worker.bestever || 0,
+                    worker.bestshare || 0,
+                    worker.bestdiff || 0
+                );
+                // Use all sources: our cache, API values, AND ckpool worker files
+                const bestDiff = minerCache.getBestDiffFromAllSources(fullName, ckpoolBest, cache);
+                return { fullName, bestDiff, worker };
+            })
+            .filter(item => item.bestDiff > 0)
+            .map(item => {
+                const { fullName, bestDiff, worker } = item;
                 // Extract worker name (part after the dot), show "anon" if no worker name
                 const workerName = fullName.includes('.') ? fullName.split('.').slice(1).join('.') : null;
                 // Get miner type from persistent cache (handles historical data)
@@ -273,14 +288,14 @@ router.get('/leaderboard', async (req, res) => {
                     workerName: workerName || 'anon',
                     minerType: minerType,
                     isOnline: isOnline,
-                    bestDiff: worker.bestdiff || 0,
-                    bestDiffFormatted: formatDifficulty(worker.bestdiff || 0),
+                    bestDiff: bestDiff,
+                    bestDiffFormatted: formatDifficulty(bestDiff),
                     hashrate: (worker.dsps1 || 0) * 4294967296,
                     hashrateFormatted: formatHashrate((worker.dsps1 || 0) * 4294967296)
                 };
             })
             .sort((a, b) => b.bestDiff - a.bestDiff)
-            .slice(0, 10); // Top 10
+            .slice(0, 99); // Top 99
 
         res.json({ success: true, data: leaderboard });
     } catch (err) {

@@ -172,8 +172,22 @@
         <div class="home-section leaderboard-section">
             <h3>Leaderboard - Best Difficulties</h3>
             <div class="leaderboard-warning">Warning: Worker names appended to addresses will be displayed here!</div>
-            <div class="leaderboard-list" id="leaderboard-list">
-                <div class="leaderboard-item loading">Loading leaderboard...</div>
+            <div class="leaderboard-table-wrapper">
+                <table class="leaderboard-table">
+                    <thead>
+                        <tr>
+                            <th>Rank</th>
+                            <th>Worker</th>
+                            <th>Miner</th>
+                            <th>Hashrate</th>
+                            <th>Best Diff</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="leaderboard-body">
+                        <tr><td colspan="6" class="loading">Loading leaderboard...</td></tr>
+                    </tbody>
+                </table>
             </div>
         </div>
     </div>
@@ -208,7 +222,7 @@
 
     async function loadPoolStats() {
         try {
-            const res = await fetch('/api/pool');
+            const res = await secureFetch('/api/pool');
             const data = await res.json();
 
             if (data.success && data.data) {
@@ -225,7 +239,7 @@
 
     async function loadBlockRewardEstimate() {
         try {
-            const res = await fetch('/api/efficiency');
+            const res = await secureFetch('/api/efficiency');
             const data = await res.json();
 
             if (data.success && data.data) {
@@ -240,7 +254,7 @@
 
     async function loadHomeHashrateChart() {
         try {
-            const res = await fetch('/api/pool');
+            const res = await secureFetch('/api/pool');
             const data = await res.json();
 
             if (data.success && data.data) {
@@ -287,29 +301,29 @@
 
     async function loadLeaderboard() {
         try {
-            const res = await fetch('/api/leaderboard');
+            const res = await secureFetch('/api/leaderboard');
             const data = await res.json();
 
-            const container = document.getElementById('leaderboard-list');
-            if (!container) return;
+            const tbody = document.getElementById('leaderboard-body');
+            if (!tbody) return;
 
             if (data.success && data.data && data.data.length > 0) {
-                container.innerHTML = data.data.map((miner, index) => `
-                    <div class="leaderboard-item">
-                        <span class="leaderboard-rank">#${index + 1}</span>
-                        <span class="leaderboard-status ${miner.isOnline ? 'online' : 'offline'}" title="${miner.isOnline ? 'Online' : 'Offline'}"></span>
-                        <span class="leaderboard-worker">${miner.workerName || 'default'}</span>
-                        <span class="leaderboard-miner">${miner.minerType || 'Unknown'}</span>
-                        <span class="leaderboard-hashrate">${miner.hashrateFormatted}</span>
-                        <span class="leaderboard-diff">${miner.bestDiffFormatted}</span>
-                    </div>
+                tbody.innerHTML = data.data.map((miner, index) => `
+                    <tr>
+                        <td class="rank-cell">#${index + 1}</td>
+                        <td class="worker-cell">${miner.workerName || 'anon'}</td>
+                        <td class="miner-cell">${miner.minerType || 'Unknown'}</td>
+                        <td class="hashrate-cell">${miner.hashrateFormatted}</td>
+                        <td class="diff-cell">${miner.bestDiffFormatted}</td>
+                        <td class="status-cell"><span class="status-indicator ${miner.isOnline ? 'online' : 'offline'}" title="${miner.isOnline ? 'Online' : 'Offline'}"></span></td>
+                    </tr>
                 `).join('');
             } else {
-                container.innerHTML = '<div class="leaderboard-item loading">No miners yet</div>';
+                tbody.innerHTML = '<tr><td colspan="6" class="loading">No miners yet</td></tr>';
             }
         } catch (err) {
             console.error('Failed to load leaderboard:', err);
-            document.getElementById('leaderboard-list').innerHTML = '<div class="leaderboard-item loading">Failed to load</div>';
+            document.getElementById('leaderboard-body').innerHTML = '<tr><td colspan="6" class="loading">Failed to load</td></tr>';
         }
     }
 </script>
