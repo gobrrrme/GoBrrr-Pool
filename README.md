@@ -2,8 +2,9 @@
 
 A modern, feature-rich WebUI for [ckpool-solo](https://bitbucket.org/ckolivas/ckpool-solo/) Bitcoin mining pool. Designed for solo miners who want to run their own pool with a clean, responsive interface. This software is free as in FREEDOM!
 
-![License](https://img.shields.io/badge/license-MIT-blue.svg)
+![License](https://img.shields.io/badge/license-GPL--3.0-blue.svg)
 ![Docker](https://img.shields.io/badge/docker-ready-brightgreen.svg)
+
 
 ## Overview
 
