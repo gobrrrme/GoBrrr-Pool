@@ -332,4 +332,6 @@ This software is provided as-is. Solo mining is a game of chance - you may mine 
 
 ---
 
-**Go Brrr Pool** - Making Bitcoin mining fun again!
+[SUPPORT ME](https://www.gobrrr.me/donate/)
+
+**Go Brrr Pool** - Solo Mining Done Right!
