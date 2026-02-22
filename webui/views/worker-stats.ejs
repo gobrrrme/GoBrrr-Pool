@@ -1,0 +1,172 @@
+<div class="stats-container">
+    <div class="stats-header">
+        <h1>Worker Statistics</h1>
+        <p class="address-display"><%= worker %></p>
+        <p class="worker-address"><a href="/stats/<%= address %>"><%= address %></a></p>
+    </div>
+
+    <% if (error) { %>
+    <div class="alert alert-error">
+        <p><%= error %></p>
+        <a href="/stats/<%= address %>" class="btn btn-secondary">Go Back</a>
+    </div>
+    <% } %>
+
+    <% if (workerData) { %>
+    <div class="user-stats">
+        <!-- Worker Info -->
+        <div class="stats-section">
+            <h2>Worker Info</h2>
+            <div class="stats-grid">
+                <div class="stat-card highlight">
+                    <div class="stat-label">Worker Name</div>
+                    <div class="stat-value"><%= workerData.name %></div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Miner Type</div>
+                    <div class="stat-value" title="<%= workerData.useragent %>"><%= workerData.minerType %></div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Status</div>
+                    <div class="stat-value <%= workerData.isIdle ? 'warning' : 'success' %>"><%= workerData.isIdle ? 'Idle' : 'Active' %></div>
+                </div>
+                <% if (workerData.currentDiff > 0) { %>
+                <div class="stat-card">
+                    <div class="stat-label">Current Difficulty</div>
+                    <div class="stat-value"><%= formatDifficulty(workerData.currentDiff) %></div>
+                </div>
+                <% } %>
+            </div>
+        </div>
+
+        <!-- Hashrate Overview -->
+        <div class="stats-section">
+            <h2>Hashrate</h2>
+            <div class="stats-grid">
+                <div class="stat-card highlight">
+                    <div class="stat-label">Current (1m avg)</div>
+                    <div class="stat-value"><%= formatHashrate(workerData.hashrate.current) %></div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">5m Average</div>
+                    <div class="stat-value"><%= formatHashrate(workerData.hashrate.avg5m) %></div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">1h Average</div>
+                    <div class="stat-value"><%= formatHashrate(workerData.hashrate.avg1h) %></div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">24h Average</div>
+                    <div class="stat-value"><%= formatHashrate(workerData.hashrate.avg24h) %></div>
+                </div>
+                <% if (workerData.hashrate.avg7d > 0) { %>
+                <div class="stat-card">
+                    <div class="stat-label">7d Average</div>
+                    <div class="stat-value"><%= formatHashrate(workerData.hashrate.avg7d) %></div>
+                </div>
+                <% } %>
+            </div>
+        </div>
+
+        <!-- Shares -->
+        <div class="stats-section">
+            <h2>Shares</h2>
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-label">Accepted</div>
+                    <div class="stat-value success"><%= workerData.shares.toLocaleString() %></div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Best Difficulty</div>
+                    <div class="stat-value"><%= formatDifficulty(workerData.bestDiff) %></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Activity -->
+        <div class="stats-section">
+            <h2>Activity</h2>
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-label">Last Share</div>
+                    <div class="stat-value"><%= timeAgo(workerData.lastShare) %></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Hashrate Chart -->
+        <div class="stats-section">
+            <h2>Hashrate History</h2>
+            <div class="chart-container">
+                <% if (workerData.hashrate.current > 0 || workerData.hashrate.avg5m > 0 || workerData.hashrate.avg1h > 0 || workerData.hashrate.avg24h > 0) { %>
+                <canvas id="hashrate-chart"></canvas>
+                <% } else { %>
+                <div class="no-chart-data">
+                    <p>No hashrate data available yet.</p>
+                    <p class="hint">Data will appear after your miner submits shares.</p>
+                </div>
+                <% } %>
+            </div>
+        </div>
+    </div>
+    <% } else if (!error) { %>
+    <div class="no-data">
+        <h2>Worker Not Found</h2>
+        <p>No mining activity found for worker "<%= worker %>".</p>
+        <p style="color: #888; font-size: 0.9rem; margin-top: 15px;">
+            This could mean:
+        </p>
+        <ul style="color: #888; font-size: 0.9rem; text-align: left; max-width: 400px; margin: 10px auto;">
+            <li>The worker has never connected to this pool</li>
+            <li>The worker is not currently active</li>
+            <li>The worker name was typed incorrectly</li>
+        </ul>
+        <div style="margin-top: 25px;">
+            <a href="/stats/<%= address %>" class="btn btn-primary">View All Workers</a>
+        </div>
+    </div>
+    <% } %>
+
+    <div class="stats-actions">
+        <a href="/stats/<%= address %>" class="btn btn-secondary">Back to Address</a>
+        <button class="btn btn-primary" onclick="location.reload()">Refresh</button>
+    </div>
+</div>
+
+<style>
+.worker-address {
+    font-size: 0.85rem;
+    color: #888;
+    margin-top: 5px;
+}
+
+.worker-address a {
+    color: #ff931c;
+    text-decoration: none;
+}
+
+.worker-address a:hover {
+    text-decoration: underline;
+}
+</style>
+
+<script>
+    <% if (!error && workerData) { %>
+    document.addEventListener('DOMContentLoaded', function() {
+        <% if (workerData.hashrate.current > 0 || workerData.hashrate.avg5m > 0 || workerData.hashrate.avg1h > 0 || workerData.hashrate.avg24h > 0) { %>
+        const chartData = [
+            { label: '24h', value: <%= workerData.hashrate.avg24h || 0 %> },
+            { label: '1h', value: <%= workerData.hashrate.avg1h || 0 %> },
+            { label: '5m', value: <%= workerData.hashrate.avg5m || 0 %> },
+            { label: '1m', value: <%= workerData.hashrate.current || 0 %> }
+        ];
+        <% if (workerData.hashrate.avg7d > 0) { %>
+        chartData.unshift({ label: '7d', value: <%= workerData.hashrate.avg7d %> });
+        <% } %>
+        if (typeof initHashrateChart === 'function') {
+            initHashrateChart(chartData);
+        }
+        <% } %>
+    });
+    <% } %>
+</script>

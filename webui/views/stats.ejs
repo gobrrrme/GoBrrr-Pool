@@ -18,12 +18,8 @@
             <h2>Hashrate</h2>
             <div class="stats-grid">
                 <div class="stat-card highlight">
-                    <div class="stat-label">Current (1m avg)</div>
+                    <div class="stat-label">Hashrate (5m avg)</div>
                     <div class="stat-value"><%= formatHashrate(user.hashrate.current) %></div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-label">5m Average</div>
-                    <div class="stat-value"><%= formatHashrate(user.hashrate.avg5m) %></div>
                 </div>
                 <div class="stat-card">
                     <div class="stat-label">1h Average</div>
@@ -49,14 +45,6 @@
                 <div class="stat-card">
                     <div class="stat-label">Accepted</div>
                     <div class="stat-value success"><%= user.shares.accepted.toLocaleString() %></div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-label">Rejected</div>
-                    <div class="stat-value <%= user.shares.rejected > 0 ? 'warning' : '' %>"><%= user.shares.rejected.toLocaleString() %></div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-label">Stale</div>
-                    <div class="stat-value <%= user.shares.stale > 0 ? 'warning' : '' %>"><%= user.shares.stale.toLocaleString() %></div>
                 </div>
                 <div class="stat-card">
                     <div class="stat-label">Best Difficulty</div>
@@ -101,10 +89,12 @@
                         </tr>
                     </thead>
                     <tbody>
-                        <% clients.forEach(function(c) { %>
+                        <% clients.forEach(function(c) {
+                            const workerSuffix = c.workername ? c.workername.split('.').pop() : 'default';
+                        %>
                         <tr>
-                            <td><%= c.workername || 'default' %></td>
-                            <td><%= formatHashrate((c.dsps1 || 0) * 4294967296) %></td>
+                            <td><a href="/stats/<%= address %>/<%= encodeURIComponent(workerSuffix) %>" class="worker-link"><%= workerSuffix %></a></td>
+                            <td><%= formatHashrate((c.dsps5 || 0) * 4294967296) %></td>
                             <td class="miner-type" title="<%= c.useragent %>"><%= c.miner.name %></td>
                             <td><%= formatDifficulty(c.diff) %></td>
                             <td><%= formatDifficulty(c.bestdiff) %></td>
@@ -132,9 +122,11 @@
                         </tr>
                     </thead>
                     <tbody>
-                        <% user.workers.forEach(function(w) { %>
+                        <% user.workers.forEach(function(w) {
+                            const workerName = w.name || 'default';
+                        %>
                         <tr>
-                            <td><%= w.name || 'default' %></td>
+                            <td><a href="/stats/<%= address %>/<%= encodeURIComponent(workerName) %>" class="worker-link"><%= workerName %></a></td>
                             <td><%= formatHashrate(w.hashrate || 0) %></td>
                             <td><%= (w.shares || 0).toLocaleString() %></td>
                             <td><%= formatDifficulty(w.bestdiff || 0) %></td>

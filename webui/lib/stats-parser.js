@@ -123,8 +123,8 @@ function parsePoolStats(poolstats, stratifier, connector) {
         pool.hashrate1d = (poolstats.dsps1440 || 0) * NONCES_PER_SHARE;
         pool.hashrate7d = (poolstats.dsps10080 || 0) * NONCES_PER_SHARE;
 
-        // Use 1 minute hashrate as main display value
-        pool.hashrate = pool.hashrate1m;
+        // Use 5 minute hashrate as main display value (more stable than 1m)
+        pool.hashrate = pool.hashrate5m;
 
         // Best difficulty for the pool
         pool.bestDiff = poolstats.bestdiff || 0;
@@ -174,8 +174,8 @@ function parseUserStats(raw) {
         address: raw.user || raw.username || 'Unknown',
         id: raw.id || 0,
         hashrate: {
-            current: hashrate1m,
-            avg5m: hashrate5m,
+            current: hashrate5m,
+            avg1m: hashrate1m,
             avg15m: 0, // Not provided by ckpool
             avg1h: hashrate1h,
             avg24h: hashrate1d,
@@ -327,19 +327,24 @@ function parseClientInfo(clientData) {
         id: client.id || 0,
         workername: client.workername || 'default',
         useragent: client.useragent || '',
-        miner: parseMinerType(client.useragent),
+        miner: (!client.useragent && client.workername && !client.workername.includes('.'))
+            ? { type: 'Proxy', name: 'Mining Proxy' }
+            : parseMinerType(client.useragent),
         diff: client.diff || 0,
         startdiff: client.startdiff || 0,
         // Use bestever/bestshare (historical) over bestdiff (session-based)
         bestdiff: client.bestever || client.bestshare || client.bestdiff || 0,
         dsps1: client.dsps1 || 0,
+        dsps5: client.dsps5 || 0,
         rejected: client.rejected || 0,
+        stale: client.stale || 0,
         idle: client.idle || false,
         ip: client.ip || ''
     }));
 }
 
 // Aggregate miner types from client list (returns counts by type)
+// Only counts active clients (non-idle and has useragent or recent activity)
 function aggregateMinerTypes(clientData) {
     if (!clientData || !clientData.clients || !Array.isArray(clientData.clients)) {
         return [];
@@ -347,7 +352,18 @@ function aggregateMinerTypes(clientData) {
 
     const typeCounts = {};
 
-    clientData.clients.forEach(client => {
+    // Filter to only truly active clients:
+    // - Not idle
+    // - Has useragent OR has recent hashrate activity (dsps1 > 0)
+    const activeClients = clientData.clients.filter(client => {
+        if (client.idle) return false;
+        // Include if has useragent or has recent share activity
+        const hasUseragent = client.useragent && client.useragent.trim() !== '';
+        const hasActivity = (client.dsps1 || 0) > 0;
+        return hasUseragent || hasActivity;
+    });
+
+    activeClients.forEach(client => {
         const miner = parseMinerType(client.useragent);
         const key = miner.name;
         if (!typeCounts[key]) {

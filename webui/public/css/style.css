@@ -672,6 +672,17 @@ body {
     background: rgba(255, 147, 28, 0.05);
 }
 
+.worker-link {
+    color: #ff931c;
+    text-decoration: none;
+    font-weight: 600;
+}
+
+.worker-link:hover {
+    text-decoration: underline;
+    color: #ffb347;
+}
+
 /* Miner Type Display */
 .miner-type {
     white-space: nowrap;
@@ -1411,6 +1422,40 @@ body {
     background: rgba(255, 147, 28, 0.1);
     border-color: #ff931c;
     color: #ff931c;
+}
+
+.recent-searches-mini .search-item-wrapper {
+    display: flex;
+    align-items: center;
+    width: 100%;
+}
+
+.recent-searches-mini .search-item-wrapper .search-item {
+    flex: 1;
+}
+
+.recent-searches-mini .search-item-delete {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    width: 20px;
+    height: 20px;
+    margin-left: 8px;
+    padding: 0;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid transparent;
+    border-radius: 50%;
+    color: #666;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.recent-searches-mini .search-item-delete:hover {
+    background: rgba(255, 80, 80, 0.2);
+    border-color: #ff5050;
+    color: #ff5050;
 }
 
 /* Pool Stats Card Specific */

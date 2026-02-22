@@ -6,6 +6,10 @@ services:
       dockerfile: Dockerfile
     container_name: gobrrrpool
     restart: unless-stopped
+    ulimits:
+      nofile:
+        soft: 69420
+        hard: 69420
     ports:
       - "${STRATUM_PORT:-3333}:3333"
     volumes:
@@ -55,6 +59,23 @@ services:
       timeout: 5s
       retries: 3
       start_period: 10s
+
+  # Optional: Bitcoin Core node
+  # Uncomment to run bitcoind in Docker
+  # bitcoind:
+  #   image: lncm/bitcoind:v26.0
+  #   container_name: bitcoind
+  #   restart: unless-stopped
+  #   ports:
+  #     - "8333:8333"   # P2P
+  #     - "8332:8332"   # RPC
+  #     - "28332:28332" # ZMQ blocks
+  #     - "28333:28333" # ZMQ tx
+  #   volumes:
+  #     - bitcoin-data:/home/bitcoin/.bitcoin
+  #     - ./config/bitcoin.conf:/home/bitcoin/.bitcoin/bitcoin.conf:ro
+  #   networks:
+  #     - mining-network
 
 volumes:
   ckpool-socket:

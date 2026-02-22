@@ -1,6 +1,5 @@
 <div class="dashboard-container">
     <h1 class="page-title">Efficiency Dashboard</h1>
-    <p class="dashboard-subtitle">Real-time performance metrics</p>
 
     <!-- Live Status Indicator -->
     <div class="live-status">
@@ -8,106 +7,120 @@
         <span id="last-update">Updating...</span>
     </div>
 
-    <!-- Main Efficiency Grid -->
-    <div class="efficiency-grid">
-        <!-- Pool Hashrate Card -->
-        <div class="efficiency-card primary">
-            <div class="card-content">
-                <div class="card-value" id="pool-hashrate">-</div>
-                <div class="card-label">Pool Hashrate</div>
+    <div class="home-sections">
+        <!-- Pool Performance Hero Card -->
+        <div class="home-section hero-card">
+            <div class="hero-header">
+                <div class="hero-title-section">
+                    <h2>Pool Performance</h2>
+                    <span class="live-indicator">
+                        <span class="live-dot"></span>
+                        <span id="worker-status">loading...</span>
+                    </span>
+                </div>
             </div>
-            <div class="card-detail" id="pool-workers-users">- workers / - users</div>
-        </div>
-
-        <!-- Network Share Card -->
-        <div class="efficiency-card">
-            <div class="card-content">
-                <div class="card-value" id="network-share">-</div>
-                <div class="card-label">Network Share</div>
+            <div class="hero-stats">
+                <div class="hero-stat primary">
+                    <div class="hero-stat-value" id="pool-hashrate">-</div>
+                    <div class="hero-stat-label">Pool Hashrate</div>
+                </div>
+                <div class="hero-stat">
+                    <div class="hero-stat-value" id="active-workers">-</div>
+                    <div class="hero-stat-label">Workers</div>
+                </div>
+                <div class="hero-stat">
+                    <div class="hero-stat-value" id="active-users">-</div>
+                    <div class="hero-stat-label">Users</div>
+                </div>
+                <div class="hero-stat">
+                    <div class="hero-stat-value" id="network-share">-</div>
+                    <div class="hero-stat-label">Network Share</div>
+                </div>
             </div>
-            <div class="card-detail" id="network-hashrate">vs - network</div>
-        </div>
-
-        <!-- Expected Block Time Card -->
-        <div class="efficiency-card highlight">
-            <div class="card-content">
-                <div class="card-value" id="expected-time">-</div>
-                <div class="card-label">Expected Block Time</div>
-            </div>
-            <div class="card-detail" id="daily-probability">Daily chance: -</div>
-        </div>
-
-        <!-- Best Difficulty Card -->
-        <div class="efficiency-card success">
-            <div class="card-content">
-                <div class="card-value" id="best-diff">-</div>
-                <div class="card-label">Best Difficulty</div>
-            </div>
-            <div class="card-detail">All-time pool record</div>
-        </div>
-    </div>
-
-    <!-- Share Efficiency Section -->
-    <div class="stats-section">
-        <h2>Share Efficiency</h2>
-        <div class="stats-grid">
-            <div class="stat-card">
-                <div class="stat-label">Shares/sec</div>
-                <div class="stat-value" id="shares-per-sec">-</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-label">Accepted Diff</div>
-                <div class="stat-value success" id="accepted-diff">-</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-label">Rejected Diff</div>
-                <div class="stat-value" id="rejected-diff">-</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-label">Reject Rate</div>
-                <div class="stat-value" id="reject-rate">-</div>
+            <div class="hero-details">
+                <div class="hero-detail-row">
+                    <div class="hero-detail">
+                        <span class="detail-label">Best Difficulty</span>
+                        <span class="detail-value highlight" id="best-diff">-</span>
+                    </div>
+                    <div class="hero-detail">
+                        <span class="detail-label">Network Hashrate</span>
+                        <span class="detail-value" id="network-hashrate">-</span>
+                    </div>
+                </div>
             </div>
         </div>
-    </div>
 
-    <!-- Fee Market Section -->
-    <div class="stats-section">
-        <h2>Transaction Fee Market</h2>
-        <div class="stats-grid">
-            <div class="stat-card highlight">
-                <div class="stat-label">Est. Block Fees</div>
-                <div class="stat-value" id="block-fees">-</div>
+        <!-- Block Mining Potential Card -->
+        <div class="home-section hero-card">
+            <div class="hero-header">
+                <div class="hero-title-section">
+                    <h2>Block Mining Potential</h2>
+                </div>
             </div>
-            <div class="stat-card">
-                <div class="stat-label">High Priority</div>
-                <div class="stat-value" id="fee-fast">- sat/vB</div>
+            <div class="hero-stats">
+                <div class="hero-stat primary">
+                    <div class="hero-stat-value" id="expected-time">-</div>
+                    <div class="hero-stat-label">Expected Block Time</div>
+                </div>
+                <div class="hero-stat">
+                    <div class="hero-stat-value" id="daily-probability">-</div>
+                    <div class="hero-stat-label">Daily Chance</div>
+                </div>
+                <div class="hero-stat">
+                    <div class="hero-stat-value" id="block-reward">-</div>
+                    <div class="hero-stat-label">Block Reward</div>
+                </div>
+                <div class="hero-stat">
+                    <div class="hero-stat-value" id="daily-revenue">-</div>
+                    <div class="hero-stat-label">Expected Daily</div>
+                </div>
             </div>
-            <div class="stat-card">
-                <div class="stat-label">Medium</div>
-                <div class="stat-value" id="fee-medium">- sat/vB</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-label">Economy</div>
-                <div class="stat-value" id="fee-economy">- sat/vB</div>
+            <div class="hero-details">
+                <div class="hero-detail-row">
+                    <div class="hero-detail">
+                        <span class="detail-label">Block Subsidy</span>
+                        <span class="detail-value">3.125 BTC</span>
+                    </div>
+                    <div class="hero-detail">
+                        <span class="detail-label">Est. Fees</span>
+                        <span class="detail-value" id="block-fees">-</span>
+                    </div>
+                </div>
             </div>
         </div>
-    </div>
 
-    <!-- Revenue Estimation Section -->
-    <div class="stats-section">
-        <h2>Revenue Estimation</h2>
-        <div class="stats-grid">
-            <div class="stat-card">
-                <div class="stat-label">Block Subsidy</div>
-                <div class="stat-value" id="block-subsidy">3.125 BTC</div>
+        <!-- Efficiency & Fees Card -->
+        <div class="home-section fee-rates">
+            <h3>Share Efficiency</h3>
+            <div class="fee-grid">
+                <div class="fee-item">
+                    <span class="fee-label">Shares/sec</span>
+                    <span class="fee-value" id="shares-per-sec">-</span>
+                </div>
+                <div class="fee-item">
+                    <span class="fee-label">Accepted Diff</span>
+                    <span class="fee-value success" id="accepted-diff">-</span>
+                </div>
+                <div class="fee-item">
+                    <span class="fee-label">Reject Rate</span>
+                    <span class="fee-value" id="reject-rate">-</span>
+                </div>
             </div>
-            <div class="stat-card">
-                <div class="stat-label">Fees in Next Block</div>
-                <div class="stat-value" id="block-fees-est">-</div>
-            </div>
-            <div class="stat-card highlight">
-                <div class="stat-label">Total Block Reward</div>
-                <div class="stat-value" id="block-reward">-</div>
+            <h4 style="margin-top: 20px; margin-bottom: 10px; text-align: center;">Fee Rates (sat/vB)</h4>
+            <div class="fee-grid">
+                <div class="fee-item highlight">
+                    <span class="fee-label">High Priority</span>
+                    <span class="fee-value" id="fee-fast">-</span>
+                </div>
+                <div class="fee-item">
+                    <span class="fee-label">Medium</span>
+                    <span class="fee-value" id="fee-medium">-</span>
+                </div>
+                <div class="fee-item">
+                    <span class="fee-label">Economy</span>
+                    <span class="fee-value" id="fee-economy">-</span>
+                </div>
             </div>
         </div>
     </div>
@@ -122,12 +135,6 @@
 .dashboard-container {
     max-width: 1200px;
     margin: 0 auto;
-}
-
-.dashboard-subtitle {
-    color: var(--text-secondary);
-    text-align: center;
-    margin-bottom: 20px;
 }
 
 .live-status {
@@ -152,59 +159,6 @@
     0%, 100% { opacity: 1; }
     50% { opacity: 0.5; }
 }
-
-.efficiency-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-    gap: 20px;
-    margin-bottom: 40px;
-}
-
-.efficiency-card {
-    background: var(--card-bg);
-    border: 2px solid var(--border-color);
-    border-radius: 12px;
-    padding: 24px;
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-}
-
-.efficiency-card.primary {
-    border-color: var(--primary-color);
-    background: linear-gradient(135deg, rgba(255, 147, 28, 0.1), transparent);
-}
-
-.efficiency-card.highlight {
-    border-color: #2196f3;
-    background: linear-gradient(135deg, rgba(33, 150, 243, 0.1), transparent);
-}
-
-.efficiency-card.success {
-    border-color: #00c853;
-    background: linear-gradient(135deg, rgba(0, 200, 83, 0.1), transparent);
-}
-
-.card-value {
-    font-size: 1.8rem;
-    font-weight: 700;
-    color: var(--text-primary);
-}
-
-.card-label {
-    font-size: 0.9rem;
-    color: var(--text-secondary);
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-}
-
-.card-detail {
-    font-size: 0.85rem;
-    color: var(--text-muted);
-    border-top: 1px solid var(--border-color);
-    padding-top: 12px;
-    margin-top: auto;
-}
 </style>
 
 <script>
@@ -212,7 +166,6 @@ let refreshInterval;
 
 document.addEventListener('DOMContentLoaded', function() {
     refreshDashboard();
-    // Auto-refresh every 10 seconds
     refreshInterval = setInterval(refreshDashboard, 10000);
 });
 
@@ -223,39 +176,31 @@ async function refreshDashboard() {
 
         if (!data) return;
 
-        // Update pool stats
+        // Pool Performance
         document.getElementById('pool-hashrate').textContent = data.poolHashrateFormatted;
-        document.getElementById('pool-workers-users').textContent =
-            `${data.activeWorkers} workers / ${data.activeUsers} users`;
-
-        // Update network share
+        document.getElementById('active-workers').textContent = data.activeWorkers;
+        document.getElementById('active-users').textContent = data.activeUsers;
         document.getElementById('network-share').textContent = data.networkShareFormatted;
-        document.getElementById('network-hashrate').textContent =
-            `vs ${data.networkHashrateFormatted} network`;
-
-        // Update block time
-        document.getElementById('expected-time').textContent = data.expectedBlockTimeFormatted;
-        document.getElementById('daily-probability').textContent =
-            `Daily chance: ${data.dailyBlockProbabilityFormatted}`;
-
-        // Update best diff
         document.getElementById('best-diff').textContent = data.bestDifficultyFormatted;
+        document.getElementById('network-hashrate').textContent = data.networkHashrateFormatted;
+        document.getElementById('worker-status').textContent = data.activeWorkers + ' workers connected';
 
-        // Update share efficiency
+        // Block Mining Potential
+        document.getElementById('expected-time').textContent = data.expectedBlockTimeFormatted;
+        document.getElementById('daily-probability').textContent = data.dailyBlockProbabilityFormatted;
+        document.getElementById('block-reward').textContent = data.blockReward.toFixed(3) + ' BTC';
+        document.getElementById('daily-revenue').textContent = data.expectedDailyRevenueFormatted;
+        document.getElementById('block-fees').textContent = data.estimatedBlockFeesFormatted;
+
+        // Share Efficiency
         document.getElementById('shares-per-sec').textContent = data.sharesPerSecond.toFixed(2);
         document.getElementById('accepted-diff').textContent = formatDifficulty(data.diffSharesAccepted);
-        document.getElementById('rejected-diff').textContent = formatDifficulty(data.diffSharesRejected);
         document.getElementById('reject-rate').textContent = data.rejectRate;
 
-        // Update fee market
-        document.getElementById('block-fees').textContent = data.estimatedBlockFeesFormatted;
-        document.getElementById('fee-fast').textContent = data.currentFees.fastest + ' sat/vB';
-        document.getElementById('fee-medium').textContent = data.currentFees.hour + ' sat/vB';
-        document.getElementById('fee-economy').textContent = data.currentFees.economy + ' sat/vB';
-
-        // Update revenue estimation
-        document.getElementById('block-fees-est').textContent = data.estimatedBlockFeesFormatted;
-        document.getElementById('block-reward').textContent = data.blockReward.toFixed(3) + ' BTC';
+        // Fee Market
+        document.getElementById('fee-fast').textContent = data.currentFees.fastest;
+        document.getElementById('fee-medium').textContent = data.currentFees.hour;
+        document.getElementById('fee-economy').textContent = data.currentFees.economy;
 
         // Update timestamp
         document.getElementById('last-update').textContent =

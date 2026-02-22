@@ -173,6 +173,7 @@ function timeAgo(timestamp) {
 // Recent Searches
 const RECENT_SEARCHES_KEY = 'ckpool_recent_searches';
 const MAX_RECENT_SEARCHES = 5;
+const RECENT_SEARCHES_TTL = 48 * 60 * 60 * 1000; // 48 hours in milliseconds
 
 function loadRecentSearches() {
     const container = document.getElementById('search-list');
@@ -185,17 +186,42 @@ function loadRecentSearches() {
         return;
     }
 
-    container.innerHTML = searches.map(addr => `
-        <a href="/stats/${addr}" class="search-item">
-            <span class="address">${truncateAddress(addr)}</span>
-            <span class="arrow">&rarr;</span>
-        </a>
+    container.innerHTML = searches.map(item => `
+        <div class="search-item-wrapper">
+            <a href="/stats/${item.address}" class="search-item">
+                <span class="address">${truncateAddress(item.address)}</span>
+                <span class="arrow">&rarr;</span>
+            </a>
+            <button class="search-item-delete" onclick="removeRecentSearch('${item.address}')" title="Remove">&times;</button>
+        </div>
     `).join('');
+}
+
+function removeRecentSearch(address) {
+    let searches = getRecentSearches();
+    searches = searches.filter(item => item.address !== address);
+    localStorage.setItem(RECENT_SEARCHES_KEY, JSON.stringify(searches));
+    loadRecentSearches();
 }
 
 function getRecentSearches() {
     try {
-        return JSON.parse(localStorage.getItem(RECENT_SEARCHES_KEY)) || [];
+        const now = Date.now();
+        let searches = JSON.parse(localStorage.getItem(RECENT_SEARCHES_KEY)) || [];
+
+        // Migrate old format (plain strings) to new format (objects with timestamp)
+        if (searches.length > 0 && typeof searches[0] === 'string') {
+            searches = searches.map(addr => ({ address: addr, timestamp: now }));
+            localStorage.setItem(RECENT_SEARCHES_KEY, JSON.stringify(searches));
+        }
+
+        // Filter out entries older than 48h
+        searches = searches.filter(item => (now - item.timestamp) < RECENT_SEARCHES_TTL);
+
+        // Save filtered list back to localStorage
+        localStorage.setItem(RECENT_SEARCHES_KEY, JSON.stringify(searches));
+
+        return searches;
     } catch {
         return [];
     }
@@ -203,8 +229,8 @@ function getRecentSearches() {
 
 function saveRecentSearch(address) {
     let searches = getRecentSearches();
-    searches = searches.filter(a => a !== address);
-    searches.unshift(address);
+    searches = searches.filter(item => item.address !== address);
+    searches.unshift({ address: address, timestamp: Date.now() });
     searches = searches.slice(0, MAX_RECENT_SEARCHES);
     localStorage.setItem(RECENT_SEARCHES_KEY, JSON.stringify(searches));
 }
@@ -421,27 +447,27 @@ function initHomePageDragDrop() {
 
 // Pool page: vertical section sorting
 function initPoolPageDragDrop() {
-    const poolStats = document.querySelector('.pool-stats');
-    if (!poolStats) return;
+    const homeSections = document.querySelector('.home-sections');
+    if (!homeSections) return;
 
-    const sections = poolStats.querySelectorAll('.stats-section');
+    const sections = homeSections.querySelectorAll('.home-section');
     sections.forEach((section, index) => {
         section.dataset.sortId = 'section-' + index;
         section.appendChild(createDragHandle(true));
     });
 
     // Apply saved layout
-    applyLayout(poolStats, loadLayout('pool-sections'));
+    applyLayout(homeSections, loadLayout('pool-sections'));
 
     // Make sections sortable
-    new Sortable(poolStats, {
+    new Sortable(homeSections, {
         handle: '.section-drag-handle',
         animation: 200,
         ghostClass: 'sortable-ghost',
         chosenClass: 'sortable-chosen',
         dragClass: 'sortable-drag',
         onEnd: function() {
-            const order = Array.from(poolStats.querySelectorAll('.stats-section'))
+            const order = Array.from(homeSections.querySelectorAll('.home-section'))
                 .map(s => s.dataset.sortId);
             saveLayout('pool-sections', order);
         }
@@ -475,66 +501,31 @@ function initStatsPageDragDrop() {
     });
 }
 
-// Dashboard page: card and section sorting
+// Dashboard page: section sorting
 function initDashboardDragDrop() {
-    // Efficiency grid cards
-    const effGrid = document.querySelector('.efficiency-grid');
-    if (effGrid) {
-        const cards = effGrid.querySelectorAll('.efficiency-card');
-        cards.forEach((card, index) => {
-            card.dataset.sortId = 'eff-' + index;
-            card.appendChild(createDragHandle());
-        });
+    const homeSections = document.querySelector('.home-sections');
+    if (!homeSections) return;
 
-        applyLayout(effGrid, loadLayout('dashboard-efficiency'));
+    const sections = homeSections.querySelectorAll('.home-section');
+    sections.forEach((section, index) => {
+        section.dataset.sortId = 'section-' + index;
+        section.appendChild(createDragHandle(true));
+    });
 
-        new Sortable(effGrid, {
-            handle: '.drag-handle',
-            animation: 200,
-            ghostClass: 'sortable-ghost',
-            chosenClass: 'sortable-chosen',
-            dragClass: 'sortable-drag',
-            onEnd: function() {
-                const order = Array.from(effGrid.querySelectorAll('.efficiency-card'))
-                    .map(c => c.dataset.sortId);
-                saveLayout('dashboard-efficiency', order);
-            }
-        });
-    }
+    // Apply saved layout
+    applyLayout(homeSections, loadLayout('dashboard-sections'));
 
-    // Stats sections - wrap in a container for sorting
-    const container = document.querySelector('.dashboard-container');
-    if (container) {
-        const sections = container.querySelectorAll('.stats-section');
-        if (sections.length > 0) {
-            // Create wrapper for sortable sections
-            const wrapper = document.createElement('div');
-            wrapper.className = 'sortable-sections';
-
-            // Move sections into wrapper
-            const firstSection = sections[0];
-            firstSection.parentNode.insertBefore(wrapper, firstSection);
-
-            sections.forEach((section, index) => {
-                section.dataset.sortId = 'section-' + index;
-                section.appendChild(createDragHandle(true));
-                wrapper.appendChild(section);
-            });
-
-            applyLayout(wrapper, loadLayout('dashboard-sections'));
-
-            new Sortable(wrapper, {
-                handle: '.section-drag-handle',
-                animation: 200,
-                ghostClass: 'sortable-ghost',
-                chosenClass: 'sortable-chosen',
-                dragClass: 'sortable-drag',
-                onEnd: function() {
-                    const order = Array.from(wrapper.querySelectorAll('.stats-section'))
-                        .map(s => s.dataset.sortId);
-                    saveLayout('dashboard-sections', order);
-                }
-            });
+    // Make sections sortable
+    new Sortable(homeSections, {
+        handle: '.section-drag-handle',
+        animation: 200,
+        ghostClass: 'sortable-ghost',
+        chosenClass: 'sortable-chosen',
+        dragClass: 'sortable-drag',
+        onEnd: function() {
+            const order = Array.from(homeSections.querySelectorAll('.home-section'))
+                .map(s => s.dataset.sortId);
+            saveLayout('dashboard-sections', order);
         }
-    }
+    });
 }

@@ -23,9 +23,9 @@ EXPOSE 3000
 # Install curl for healthcheck
 RUN apk add --no-cache curl
 
-# Health check
+# Health check - uses PORT env variable (defaults to 3000)
 HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
-    CMD curl -f http://localhost:3000/ || exit 1
+    CMD curl -f http://localhost:${PORT:-3000}/ || exit 1
 
 # Start application
 CMD ["node", "server.js"]

@@ -279,7 +279,14 @@ router.get('/leaderboard', async (req, res) => {
             .map(item => {
                 const { fullName, bestDiff, worker } = item;
                 // Extract worker name (part after the dot), show "anon" if no worker name
-                const workerName = fullName.includes('.') ? fullName.split('.').slice(1).join('.') : null;
+                let workerName = null;
+                if (fullName.includes('.')) {
+                    workerName = fullName.split('.').slice(1).join('.');
+                }
+                // If workerName is empty, null, or looks like a BTC address, show "anon"
+                if (!workerName || workerName.match(/^(1|3|bc1)[a-zA-HJ-NP-Z0-9]{20,}/)) {
+                    workerName = 'anon';
+                }
                 // Get miner type from persistent cache (handles historical data)
                 const minerType = minerCache.getMinerType(fullName, cache);
                 // Check if worker is currently connected
@@ -376,15 +383,7 @@ router.get('/efficiency', async (req, res) => {
         // P = 1 - e^(-λ) where λ = expected blocks per day
         const dailyBlockProbability = 1 - Math.exp(-dailyExpectedBlocks);
 
-        // Block reward estimation (subsidy + avg fees)
-        const blockSubsidy = 3.125; // BTC
-        const avgFeePerBlock = 0.3; // Rough estimate in BTC
-        const blockReward = blockSubsidy + avgFeePerBlock;
-
-        // Expected daily revenue (purely statistical)
-        const expectedDailyRevenue = dailyExpectedBlocks * blockReward;
-
-        // Transaction fee potential
+        // Transaction fee potential from mempool
         const currentFees = {
             fastest: feeData?.fastestFee || 0,
             halfHour: feeData?.halfHourFee || 0,
@@ -392,8 +391,15 @@ router.get('/efficiency', async (req, res) => {
             economy: feeData?.economyFee || 0
         };
 
-        // Estimated fees in next block (rough: avg tx size 250 vB, ~3000 txs)
+        // Estimated fees in next block (avg tx size 250 vB, ~3000 txs per block)
         const estimatedBlockFees = (currentFees.hour * 250 * 3000) / 100000000; // in BTC
+
+        // Block reward estimation (subsidy + estimated fees)
+        const blockSubsidy = 3.125; // BTC
+        const blockReward = blockSubsidy + estimatedBlockFees;
+
+        // Expected daily revenue (purely statistical)
+        const expectedDailyRevenue = dailyExpectedBlocks * blockReward;
 
         // Efficiency metrics
         const efficiency = {
