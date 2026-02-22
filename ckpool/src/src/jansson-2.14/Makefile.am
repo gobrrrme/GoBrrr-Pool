@@ -1,0 +1,12 @@
+ACLOCAL_AMFLAGS = -I m4
+EXTRA_DIST = CHANGES LICENSE README.rst CMakeLists.txt cmake android examples scripts
+SUBDIRS = doc src
+
+# "make distcheck" builds the dvi target, so use it to check that the
+# documentation is built correctly.
+dvi:
+	$(MAKE) SPHINXOPTS_EXTRA=-W html
+
+pkgconfigdir = $(libdir)/pkgconfig
+
+TESTS = scripts/clang-format-check
