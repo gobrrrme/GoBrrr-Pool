@@ -21,13 +21,10 @@ COPY src/ /opt/ckpool/
 WORKDIR /opt/ckpool
 
 # Build ckpool
-# On ARM64: use baseline armv8-a to avoid SHA/crypto extensions not present on all devices
+# configure.ac handles ARM64: baseline armv8-a without crypto extensions for broad compatibility
 RUN chmod +x autogen.sh && \
     ./autogen.sh && \
-    case "$(uname -m)" in \
-        aarch64) CFLAGS="-march=armv8-a" ./configure ;; \
-        *) ./configure ;; \
-    esac && \
+    ./configure && \
     make -j$(nproc)
 
 # Create directories for runtime
