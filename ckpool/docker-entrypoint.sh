@@ -60,7 +60,7 @@ cat > /etc/ckpool/ckpool.conf << EOF
     ${BTCSIG_CONFIG}
     ${ZMQ_CONFIG}
     "serverurl": [
-        "${STRATUM_BIND:-0.0.0.0}:3333"
+        "${STRATUM_BIND:-0.0.0.0}:${STRATUM_PORT:-3333}"
     ],
     "mindiff": ${MIN_DIFFICULTY:-1},
     "startdiff": ${START_DIFFICULTY:-10000},
