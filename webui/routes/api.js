@@ -297,8 +297,8 @@ router.get('/leaderboard', async (req, res) => {
                     isOnline: isOnline,
                     bestDiff: bestDiff,
                     bestDiffFormatted: formatDifficulty(bestDiff),
-                    hashrate: (worker.dsps1 || 0) * 4294967296,
-                    hashrateFormatted: formatHashrate((worker.dsps1 || 0) * 4294967296)
+                    hashrate: (worker.dsps5 || 0) * 4294967296,
+                    hashrateFormatted: formatHashrate((worker.dsps5 || 0) * 4294967296)
                 };
             })
             .sort((a, b) => b.bestDiff - a.bestDiff)
