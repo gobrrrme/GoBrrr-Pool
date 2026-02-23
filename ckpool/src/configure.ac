@@ -72,8 +72,8 @@ if test $host_cpu = 'x86_64' && test x$YASM = xyes; then
 	fi
 fi
 if test $host_cpu = 'aarch64'; then
-	CFLAGS="$CFLAGS -march=armv8-a+crypto"
-	sha2=`cat /proc/cpuinfo | grep -o -m 1 sha2`
+	CFLAGS="$CFLAGS -march=armv8-a"
+	sha2=
 fi
 AM_CONDITIONAL([HAVE_X86_SHANI], [test x$x86_shani = xsha_ni])
 AM_CONDITIONAL([HAVE_AVX2], [test x$rorx = xavx2])
