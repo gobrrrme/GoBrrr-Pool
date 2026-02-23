@@ -4,9 +4,10 @@ LABEL maintainer="ckpool-solo-webui"
 LABEL description="CKPool Solo Mining Pool"
 
 # Install build dependencies
+# Note: yasm intentionally omitted - prevents SHA-NI/AVX assembly optimizations
+# that would make the binary incompatible with older or non-standard CPUs
 RUN apt-get update && apt-get install -y \
     build-essential \
-    yasm \
     libzmq3-dev \
     autoconf \
     automake \
