@@ -21,10 +21,12 @@ COPY src/ /opt/ckpool/
 WORKDIR /opt/ckpool
 
 # Build ckpool
-# configure.ac handles ARM64: baseline armv8-a without crypto extensions for broad compatibility
+# Pass CFLAGS explicitly to prevent configure.ac from using -march=native
+# -march=native in QEMU emulation would use QEMU's CPU features, not the target device's
+# configure.ac then appends -march=armv8-a for aarch64, giving a universally compatible binary
 RUN chmod +x autogen.sh && \
     ./autogen.sh && \
-    ./configure && \
+    CFLAGS="-O2 -Wall" ./configure && \
     make -j$(nproc)
 
 # Create directories for runtime
