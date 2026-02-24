@@ -260,16 +260,9 @@ router.get('/stats/:address/:worker', async (req, res) => {
     }
 });
 
-// Efficiency Dashboard
-router.get('/dashboard', async (req, res) => {
-    try {
-        res.render('dashboard', {
-            title: 'Efficiency Dashboard'
-        });
-    } catch (err) {
-        console.error('Error loading dashboard:', err);
-        res.render('error', { error: 'Failed to load dashboard' });
-    }
+// Dashboard merged into Pool Stats — redirect for backwards compatibility
+router.get('/dashboard', (req, res) => {
+    res.redirect(301, '/pool');
 });
 
 // Pool overview page
