@@ -402,7 +402,7 @@ router.get('/efficiency', async (req, res) => {
 
         // Block reward estimation (subsidy + estimated fees)
         // Subsidy halves every 210000 blocks; calculate from current height
-        const blockSubsidy = 50 / Math.pow(2, Math.floor(blockHeight / 210000));
+        const blockSubsidy = 50 / Math.pow(2, Math.floor((parsed.blockHeight || 0) / 210000));
         const blockReward = blockSubsidy + estimatedBlockFees;
 
         // Expected daily revenue (purely statistical)

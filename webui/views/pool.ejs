@@ -32,20 +32,20 @@
                     <div class="hero-stat-value"><%= formatHashrate(networkHashrate) %></div>
                     <div class="hero-stat-label">Network Hashrate</div>
                 </div>
-                <div class="hero-stat">
-                    <div class="hero-stat-value"><%= networkShare > 0 ? (networkShare >= 0.0001 ? networkShare.toFixed(6) + '%' : '< 0.0001%') : 'N/A' %></div>
-                    <div class="hero-stat-label">Network Share</div>
-                </div>
             </div>
             <div class="hero-details">
                 <div class="hero-detail-row">
                     <div class="hero-detail">
-                        <span class="detail-label">Best Difficulty</span>
+                        <span class="detail-label">Best Ever Difficulty</span>
                         <span class="detail-value highlight"><%= formatDifficulty(pool.bestDiff) %></span>
                     </div>
                     <div class="hero-detail">
                         <span class="detail-label">Network Difficulty</span>
                         <span class="detail-value"><%= formatDifficulty(pool.networkDiff) %></span>
+                    </div>
+                    <div class="hero-detail">
+                        <span class="detail-label">Network Share</span>
+                        <span class="detail-value"><%= networkShare > 0 ? (networkShare >= 0.0001 ? networkShare.toFixed(6) + '%' : '< 0.0001%') : 'N/A' %></span>
                     </div>
                     <div class="hero-detail">
                         <span class="detail-label">Next Block</span>
