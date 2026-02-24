@@ -56,12 +56,22 @@
                     </div>
                 </div>
 
+                <!-- Qty -->
+                <div class="calc-field-group calc-field-qty">
+                    <label class="calc-label">Miners</label>
+                    <div class="calc-qty-wrap">
+                        <button class="calc-qty-btn" id="calc-qty-minus" type="button">−</button>
+                        <input type="number" id="calc-qty" class="calc-input calc-qty-input" value="1" min="1" max="9999" step="1">
+                        <button class="calc-qty-btn" id="calc-qty-plus" type="button">+</button>
+                    </div>
+                </div>
+
                 <!-- Power -->
                 <div class="calc-field-group">
-                    <label class="calc-label">Power</label>
+                    <label class="calc-label">Power <span class="calc-label-sub" id="calc-power-total-lbl"></span></label>
                     <div class="calc-input-wrap">
                         <input type="number" id="calc-power" class="calc-input" placeholder="0" min="0" step="1">
-                        <span class="calc-input-unit">W</span>
+                        <span class="calc-input-unit">W each</span>
                     </div>
                 </div>
 
@@ -248,7 +258,7 @@
 /* ─── Input grid ─── */
 .calc-inputs-grid {
     display: grid;
-    grid-template-columns: 2fr 1.5fr 1fr 1fr;
+    grid-template-columns: 2fr 1.4fr 0.7fr 1fr 1fr;
     gap: 14px;
     margin-bottom: 24px;
 }
@@ -259,7 +269,52 @@
     letter-spacing: 1px;
     color: #666;
     font-weight: 600;
+    display: flex;
+    align-items: baseline;
+    gap: 5px;
 }
+.calc-label-sub {
+    font-size: 0.65rem;
+    letter-spacing: 0;
+    text-transform: none;
+    color: #444;
+    font-weight: 400;
+}
+
+/* Qty stepper */
+.calc-qty-wrap {
+    display: flex;
+    gap: 0;
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 10px;
+    overflow: hidden;
+    transition: border-color 0.2s;
+}
+.calc-qty-wrap:focus-within { border-color: rgba(255,147,28,0.5); }
+.calc-qty-btn {
+    background: rgba(255,255,255,0.04);
+    border: none;
+    color: #888;
+    font-size: 1.1rem;
+    line-height: 1;
+    padding: 0 11px;
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s;
+    flex-shrink: 0;
+    font-family: inherit;
+}
+.calc-qty-btn:hover { background: rgba(255,147,28,0.12); color: #ff931c; }
+.calc-qty-input {
+    flex: 1;
+    border: none;
+    border-radius: 0;
+    padding: 10px 4px;
+    text-align: center;
+    min-width: 0;
+    -moz-appearance: textfield;
+}
+.calc-qty-input::-webkit-outer-spin-button,
+.calc-qty-input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
 
 /* Shared input chrome */
 .calc-select,
@@ -463,15 +518,17 @@
 .calc-footnote strong { color: #666; }
 
 /* ─── Responsive ─── */
-@media (max-width: 900px) {
-    .calc-inputs-grid { grid-template-columns: 1fr 1fr; }
+@media (max-width: 1000px) {
+    .calc-inputs-grid { grid-template-columns: 2fr 1.4fr 0.7fr; }
     .calc-field-device { grid-column: 1 / -1; }
+}
+@media (max-width: 900px) {
     .calc-grid-4 { grid-template-columns: repeat(2, 1fr); }
 }
 @media (max-width: 600px) {
     .calc-input-card { padding: 18px 16px !important; }
     .compact-card { padding: 14px 16px !important; }
-    .calc-inputs-grid { grid-template-columns: 1fr; }
+    .calc-inputs-grid { grid-template-columns: 1fr 1fr; }
     .calc-grid-3, .calc-grid-4 { grid-template-columns: repeat(2, 1fr); }
     .calc-result-val { font-size: 1.25rem; }
     .calc-prob-bar-wrap { flex-direction: column; align-items: flex-start; gap: 8px; }
@@ -573,10 +630,11 @@
     function formatBtc(btc) {
         if (btc <= 0) return '0 sats';
         if (btc >= 0.001) return btc.toFixed(6) + ' BTC';
-        if (btc >= 0.00000001) return btc.toFixed(8) + ' BTC';
-        const sats = Math.round(btc * 1e8);
-        if (sats >= 1) return sats.toLocaleString() + ' sats';
-        return '< 1 sat';
+        const sats = btc * 1e8;
+        if (sats >= 100)  return Math.round(sats).toLocaleString() + ' sats';
+        if (sats >= 1)    return sats.toFixed(2) + ' sats';
+        if (sats >= 0.01) return sats.toFixed(4) + ' sats';
+        return '< 0.01 sats';
     }
 
     function formatDuration(days) {
@@ -587,13 +645,20 @@
         return (days / 365).toFixed(1) + ' years';
     }
 
-    function getUserHashrate() {
-        const hrVal  = parseFloat(document.getElementById('calc-hashrate').value) || 0;
-        const unit   = document.getElementById('calc-unit').value;
-        return hrVal * (UNIT_MULT[unit] || 1e12);
+    function getUserQty() {
+        const v = parseInt(document.getElementById('calc-qty').value) || 1;
+        return Math.max(1, v);
     }
 
-    function getUserPower()  { return parseFloat(document.getElementById('calc-power').value) || 0; }
+    function getUserHashrate() {
+        const hrVal = parseFloat(document.getElementById('calc-hashrate').value) || 0;
+        const unit  = document.getElementById('calc-unit').value;
+        return hrVal * (UNIT_MULT[unit] || 1e12) * getUserQty();
+    }
+
+    function getUserPower()  {
+        return (parseFloat(document.getElementById('calc-power').value) || 0) * getUserQty();
+    }
     function getUserElec()   { return parseFloat(document.getElementById('calc-elec').value) || 0; }
 
     // ── Recalc ─────────────────────────────────────────────────────────────────
@@ -619,6 +684,15 @@
         const p7 = 1 - Math.pow(1 - shareOfNetwork, 144 * 7);
         const p30 = 1 - Math.pow(1 - shareOfNetwork, 144 * 30);
         const p365 = 1 - Math.pow(1 - shareOfNetwork, 144 * 365);
+
+        // Update total power label
+        const qty = getUserQty();
+        const perUnitW = parseFloat(document.getElementById('calc-power').value) || 0;
+        const totalW = perUnitW * qty;
+        const powerLbl = document.getElementById('calc-power-total-lbl');
+        if (powerLbl) {
+            powerLbl.textContent = qty > 1 && totalW > 0 ? '(' + totalW.toLocaleString() + ' W total)' : '';
+        }
 
         // ── Solo results ───────────────────────────────────────────────────────
         setText('solo-share',  formatProb(shareOfNetwork));
@@ -719,9 +793,21 @@
 
         document.getElementById('calc-device').addEventListener('change', handleDeviceChange);
 
-        ['calc-hashrate','calc-unit','calc-power','calc-elec'].forEach(id => {
+        ['calc-hashrate','calc-unit','calc-qty','calc-power','calc-elec'].forEach(id => {
             const el = document.getElementById(id);
             if (el) el.addEventListener('input', recalc);
+        });
+
+        // Qty stepper buttons
+        document.getElementById('calc-qty-minus').addEventListener('click', () => {
+            const el = document.getElementById('calc-qty');
+            el.value = Math.max(1, (parseInt(el.value) || 1) - 1);
+            recalc();
+        });
+        document.getElementById('calc-qty-plus').addEventListener('click', () => {
+            const el = document.getElementById('calc-qty');
+            el.value = Math.min(9999, (parseInt(el.value) || 1) + 1);
+            recalc();
         });
 
         // Trigger device fill on load (first option selected by default)
