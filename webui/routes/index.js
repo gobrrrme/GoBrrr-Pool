@@ -313,4 +313,9 @@ router.get('/pool', async (req, res) => {
     }
 });
 
+// Profitability Calculator page
+router.get('/calculator', (req, res) => {
+    res.render('calculator', { title: 'Mining Calculator' });
+});
+
 module.exports = router;

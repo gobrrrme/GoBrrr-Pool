@@ -26,10 +26,17 @@
                 <span class="nav-stat-label">Blocks Found</span>
                 <span class="nav-stat-value">-</span>
             </span>
+            <span class="nav-sep">|</span>
+            <span class="nav-stat" id="nav-diff-adj">
+                <span class="nav-stat-label"><span class="nav-label-full">Difficulty Adjustment</span><span class="nav-label-short">Diff Adj</span></span>
+                <span class="nav-stat-value" id="nav-diff-pct">-</span>
+                <span class="nav-stat-sub" id="nav-diff-sub">-</span>
+            </span>
         </div>
         <div class="nav-links">
             <a href="/" class="nav-link">Home</a>
             <a href="/pool" class="nav-link">Pool Stats</a>
+            <a href="/calculator" class="nav-link">Math</a>
         </div>
     </nav>
 
@@ -91,8 +98,41 @@
                 console.error('Failed to load blocks found:', err);
             }
         }
-        document.addEventListener('DOMContentLoaded', loadNavBlocksFound);
+
+        // Load difficulty adjustment for navbar
+        async function loadNavDiffAdj() {
+            try {
+                const res = await secureFetch('/api/network');
+                const data = await res.json();
+                if (data.success && data.data && data.data.difficultyAdjustment) {
+                    const adj = data.data.difficultyAdjustment;
+                    const pct = adj.difficultyChange;
+                    const prev = adj.previousRetarget;
+                    const blocks = adj.remainingBlocks;
+
+                    const pctEl = document.getElementById('nav-diff-pct');
+                    const subEl = document.getElementById('nav-diff-sub');
+
+                    if (pctEl) {
+                        const sign = pct >= 0 ? '+' : '';
+                        pctEl.textContent = sign + pct.toFixed(2) + '%';
+                    }
+                    if (subEl) {
+                        const prevSign = prev >= 0 ? '+' : '';
+                        subEl.textContent = 'Prev: ' + prevSign + prev.toFixed(2) + '% · ~' + blocks.toLocaleString() + ' blks';
+                    }
+                }
+            } catch (err) {
+                console.error('Failed to load diff adj:', err);
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            loadNavBlocksFound();
+            loadNavDiffAdj();
+        });
         setInterval(loadNavBlocksFound, 30000);
+        setInterval(loadNavDiffAdj, 60000);
     </script>
 </body>
 </html>

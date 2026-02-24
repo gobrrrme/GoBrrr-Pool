@@ -1,0 +1,723 @@
+<div class="calc-container">
+    <div class="home-sections">
+
+        <!-- ─── Input Card ─── -->
+        <div class="home-section hero-card calc-input-card">
+            <div class="calc-header">
+                <div>
+                    <div class="pool-section-label">Mining Profitability Calculator</div>
+                    <p class="calc-subtitle">Estimate earnings based on live network data</p>
+                </div>
+                <div class="calc-live-badge" id="calc-live-badge">
+                    <span class="calc-live-dot"></span>
+                    <span id="calc-live-text">Loading…</span>
+                </div>
+            </div>
+
+            <div class="calc-inputs-grid">
+
+                <!-- Device Selector -->
+                <div class="calc-field-group calc-field-device">
+                    <label class="calc-label">Device</label>
+                    <div class="calc-select-wrap">
+                        <select id="calc-device" class="calc-select">
+                            <optgroup label="── Hobbyist / Small Miners ──">
+                                <option value="nerdqaxe" data-hr="600" data-unit="GH" data-power="20">NerdQAxe++ · 600 GH/s</option>
+                                <option value="gamma" data-hr="1.2" data-unit="TH" data-power="15">Bitaxe Gamma · 1.2 TH/s</option>
+                                <option value="ultra" data-hr="500" data-unit="GH" data-power="12">Bitaxe Ultra · 500 GH/s</option>
+                                <option value="nerdminer" data-hr="80" data-unit="KH" data-power="1">Nerdminer v2 · 80 KH/s</option>
+                                <option value="custom" data-hr="" data-unit="TH" data-power="">Custom…</option>
+                            </optgroup>
+                            <optgroup label="── Industrial ASICs ──">
+                                <option value="s21pro" data-hr="234" data-unit="TH" data-power="3510">Antminer S21 Pro · 234 TH/s</option>
+                                <option value="s21" data-hr="200" data-unit="TH" data-power="3500">Antminer S21 · 200 TH/s</option>
+                                <option value="s19xp" data-hr="140" data-unit="TH" data-power="3010">Antminer S19 XP · 140 TH/s</option>
+                                <option value="s19pro" data-hr="110" data-unit="TH" data-power="3250">Antminer S19 Pro · 110 TH/s</option>
+                                <option value="m60s" data-hr="186" data-unit="TH" data-power="3441">Whatsminer M60S · 186 TH/s</option>
+                                <option value="m56splus" data-hr="230" data-unit="TH" data-power="6440">Whatsminer M56S+ · 230 TH/s</option>
+                                <option value="av1466" data-hr="150" data-unit="TH" data-power="3400">AvalonMiner 1466 · 150 TH/s</option>
+                            </optgroup>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Hashrate Input -->
+                <div class="calc-field-group">
+                    <label class="calc-label">Hashrate</label>
+                    <div class="calc-hashrate-wrap">
+                        <input type="number" id="calc-hashrate" class="calc-input" placeholder="0" min="0" step="any">
+                        <select id="calc-unit" class="calc-unit-select">
+                            <option value="KH">KH/s</option>
+                            <option value="MH">MH/s</option>
+                            <option value="GH">GH/s</option>
+                            <option value="TH" selected>TH/s</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Power -->
+                <div class="calc-field-group">
+                    <label class="calc-label">Power</label>
+                    <div class="calc-input-wrap">
+                        <input type="number" id="calc-power" class="calc-input" placeholder="0" min="0" step="1">
+                        <span class="calc-input-unit">W</span>
+                    </div>
+                </div>
+
+                <!-- Electricity -->
+                <div class="calc-field-group">
+                    <label class="calc-label">Electricity</label>
+                    <div class="calc-input-wrap">
+                        <input type="number" id="calc-elec" class="calc-input" placeholder="0.00" min="0" step="0.001">
+                        <span class="calc-input-unit">$/kWh</span>
+                    </div>
+                </div>
+
+            </div><!-- /calc-inputs-grid -->
+
+            <!-- Mode Tabs -->
+            <div class="tabs calc-mode-tabs">
+                <button class="tab-btn active" data-tab="solo">Solo Mining</button>
+                <button class="tab-btn" data-tab="shared">Shared Mining</button>
+            </div>
+
+        </div><!-- /input card -->
+
+        <!-- ─── Results Card ─── -->
+        <div class="home-section compact-card calc-results-card">
+
+            <!-- Loading overlay -->
+            <div id="calc-loading" class="calc-loading-state">
+                <div class="calc-spinner"></div>
+                <span>Fetching live network data…</span>
+            </div>
+
+            <!-- Solo Tab -->
+            <div class="tab-content active" id="tab-solo">
+                <div class="pool-section-label">Solo Mining Odds</div>
+
+                <!-- Main stats row -->
+                <div class="calc-results-grid calc-grid-3">
+                    <div class="calc-result-item">
+                        <div class="calc-result-val accent" id="solo-share">—</div>
+                        <div class="calc-result-lbl">Your Share of Network</div>
+                    </div>
+                    <div class="calc-result-item">
+                        <div class="calc-result-val" id="solo-expected-time">—</div>
+                        <div class="calc-result-lbl">Expected Time per Block</div>
+                    </div>
+                    <div class="calc-result-item">
+                        <div class="calc-result-val accent" id="solo-block-value">—</div>
+                        <div class="calc-result-lbl">Block Value</div>
+                    </div>
+                </div>
+
+                <!-- Probability row -->
+                <div class="pool-section-label" style="margin-top:20px;">Probability of Finding a Block</div>
+                <div class="calc-results-grid calc-grid-4">
+                    <div class="calc-result-item">
+                        <div class="calc-result-val" id="solo-prob-day">—</div>
+                        <div class="calc-result-lbl">Per Day</div>
+                    </div>
+                    <div class="calc-result-item">
+                        <div class="calc-result-val" id="solo-prob-week">—</div>
+                        <div class="calc-result-lbl">Per Week</div>
+                    </div>
+                    <div class="calc-result-item">
+                        <div class="calc-result-val" id="solo-prob-month">—</div>
+                        <div class="calc-result-lbl">Per Month</div>
+                    </div>
+                    <div class="calc-result-item">
+                        <div class="calc-result-val" id="solo-prob-year">—</div>
+                        <div class="calc-result-lbl">Per Year</div>
+                    </div>
+                </div>
+
+                <!-- Monthly probability bar -->
+                <div class="calc-prob-bar-wrap">
+                    <div class="calc-prob-bar-track">
+                        <div class="calc-prob-bar-fill" id="solo-prob-bar" style="width:0%"></div>
+                    </div>
+                    <span class="calc-prob-bar-label" id="solo-prob-bar-label">0% chance this month</span>
+                </div>
+
+            </div><!-- /tab-solo -->
+
+            <!-- Shared Tab -->
+            <div class="tab-content" id="tab-shared">
+                <div class="pool-section-label">Shared Mining Revenue</div>
+
+                <!-- Revenue row -->
+                <div class="calc-results-grid calc-grid-3">
+                    <div class="calc-result-item">
+                        <div class="calc-result-val accent" id="shared-btc-day">—</div>
+                        <div class="calc-result-lbl">BTC / Day</div>
+                    </div>
+                    <div class="calc-result-item">
+                        <div class="calc-result-val accent" id="shared-btc-month">—</div>
+                        <div class="calc-result-lbl">BTC / Month</div>
+                    </div>
+                    <div class="calc-result-item">
+                        <div class="calc-result-val" id="shared-usd-month">—</div>
+                        <div class="calc-result-lbl">USD / Month</div>
+                    </div>
+                </div>
+
+                <!-- Electricity / Profit row (only shown when power + elec filled) -->
+                <div id="shared-profit-section" class="calc-profit-section" style="display:none">
+                    <div class="pool-section-label" style="margin-top:20px;">Net Profitability (per day)</div>
+                    <div class="calc-results-grid calc-grid-3">
+                        <div class="calc-result-item">
+                            <div class="calc-result-val" id="shared-revenue-day">—</div>
+                            <div class="calc-result-lbl">Revenue</div>
+                        </div>
+                        <div class="calc-result-item">
+                            <div class="calc-result-val warning" id="shared-elec-day">—</div>
+                            <div class="calc-result-lbl">Electricity Cost</div>
+                        </div>
+                        <div class="calc-result-item">
+                            <div class="calc-result-val" id="shared-profit-day">—</div>
+                            <div class="calc-result-lbl">Net Profit / Loss</div>
+                        </div>
+                    </div>
+                </div>
+
+            </div><!-- /tab-shared -->
+
+        </div><!-- /results card -->
+
+        <!-- ─── Network Data footnote ─── -->
+        <div class="calc-footnote">
+            Based on live network data ·
+            Network Hashrate: <strong id="fn-nethash">—</strong> ·
+            BTC Price: <strong id="fn-price">—</strong> ·
+            Block Reward: <strong id="fn-reward">—</strong> ·
+            Updated <span id="fn-time">just now</span>
+        </div>
+
+    </div><!-- /home-sections -->
+</div><!-- /calc-container -->
+
+<style>
+/* ─── Container ─── */
+.calc-container .home-sections {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    margin-bottom: 16px;
+}
+.calc-input-card { padding: 28px 30px !important; }
+.compact-card { padding: 20px 24px !important; }
+
+/* ─── Header row ─── */
+.calc-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 24px;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+.calc-subtitle {
+    font-size: 0.82rem;
+    color: #555;
+    margin-top: 4px;
+}
+.calc-live-badge {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    font-size: 0.78rem;
+    color: #888;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 999px;
+    padding: 5px 14px;
+}
+.calc-live-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: #888;
+    transition: background 0.3s;
+}
+.calc-live-badge.loaded .calc-live-dot { background: #00d26a; }
+.calc-live-badge.loaded { color: #c4c4c4; }
+
+/* ─── Input grid ─── */
+.calc-inputs-grid {
+    display: grid;
+    grid-template-columns: 2fr 1.5fr 1fr 1fr;
+    gap: 14px;
+    margin-bottom: 24px;
+}
+.calc-field-group { display: flex; flex-direction: column; gap: 7px; }
+.calc-label {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: #666;
+    font-weight: 600;
+}
+
+/* Shared input chrome */
+.calc-select,
+.calc-input,
+.calc-unit-select {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 10px;
+    color: #e0e0e0;
+    font-size: 0.9rem;
+    font-family: inherit;
+    transition: border-color 0.2s, background 0.2s;
+    outline: none;
+}
+.calc-select:focus,
+.calc-input:focus,
+.calc-unit-select:focus {
+    border-color: rgba(255,147,28,0.5);
+    background: rgba(255,147,28,0.05);
+}
+
+/* Device select */
+.calc-select-wrap { position: relative; }
+.calc-select {
+    width: 100%;
+    padding: 10px 14px;
+    appearance: none;
+    cursor: pointer;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='%23666' d='M6 8L0 0h12z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 14px center;
+    padding-right: 36px;
+}
+.calc-select option, .calc-select optgroup {
+    background: #212121;
+    color: #e0e0e0;
+}
+
+/* Hashrate row: input + unit select side-by-side */
+.calc-hashrate-wrap {
+    display: flex;
+    gap: 0;
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 10px;
+    overflow: hidden;
+    transition: border-color 0.2s;
+}
+.calc-hashrate-wrap:focus-within { border-color: rgba(255,147,28,0.5); }
+.calc-hashrate-wrap .calc-input {
+    flex: 1;
+    border: none;
+    border-radius: 0;
+    padding: 10px 12px;
+    min-width: 0;
+}
+.calc-hashrate-wrap .calc-input:focus { background: rgba(255,147,28,0.05); }
+.calc-unit-select {
+    border: none;
+    border-left: 1px solid rgba(255,255,255,0.08);
+    border-radius: 0;
+    padding: 10px 8px 10px 10px;
+    font-size: 0.82rem;
+    color: #888;
+    cursor: pointer;
+    appearance: none;
+    padding-right: 22px;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath fill='%23555' d='M5 6L0 0h10z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 6px center;
+}
+
+/* Power / elec: input + suffix label */
+.calc-input-wrap {
+    display: flex;
+    gap: 0;
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 10px;
+    overflow: hidden;
+    transition: border-color 0.2s;
+}
+.calc-input-wrap:focus-within { border-color: rgba(255,147,28,0.5); }
+.calc-input-wrap .calc-input {
+    flex: 1;
+    border: none;
+    border-radius: 0;
+    padding: 10px 12px;
+    min-width: 0;
+}
+.calc-input-wrap .calc-input:focus { background: rgba(255,147,28,0.05); }
+.calc-input-unit {
+    display: flex;
+    align-items: center;
+    padding: 0 12px;
+    font-size: 0.78rem;
+    color: #555;
+    border-left: 1px solid rgba(255,255,255,0.06);
+    white-space: nowrap;
+    background: rgba(255,255,255,0.02);
+}
+
+/* ─── Mode tabs ─── */
+.calc-mode-tabs {
+    margin-bottom: 0;
+    justify-content: flex-start;
+    gap: 10px;
+}
+.calc-mode-tabs .tab-btn { padding: 10px 24px; font-size: 0.9rem; }
+
+/* ─── Loading state ─── */
+.calc-loading-state {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 20px 0;
+    color: #555;
+    font-size: 0.88rem;
+}
+.calc-loading-state.hidden { display: none; }
+.calc-spinner {
+    width: 18px;
+    height: 18px;
+    border: 2px solid rgba(255,147,28,0.2);
+    border-top-color: #ff931c;
+    border-radius: 50%;
+    animation: calc-spin 0.8s linear infinite;
+    flex-shrink: 0;
+}
+@keyframes calc-spin { to { transform: rotate(360deg); } }
+
+/* ─── Results grid ─── */
+.calc-results-grid {
+    display: grid;
+    gap: 16px 20px;
+    margin-top: 12px;
+}
+.calc-grid-3 { grid-template-columns: repeat(3, 1fr); }
+.calc-grid-4 { grid-template-columns: repeat(4, 1fr); }
+
+.calc-result-item {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+.calc-result-val {
+    font-size: 1.6rem;
+    font-weight: 800;
+    color: #c4c4c4;
+    line-height: 1.1;
+    letter-spacing: -0.5px;
+}
+.calc-result-val.accent { color: #ff931c; }
+.calc-result-val.warning { color: #e05c5c; }
+.calc-result-val.success { color: #00d26a; }
+.calc-result-lbl {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    color: #555;
+}
+
+/* ─── Probability bar ─── */
+.calc-prob-bar-wrap {
+    margin-top: 18px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+.calc-prob-bar-track {
+    flex: 1;
+    height: 10px;
+    background: rgba(255,255,255,0.05);
+    border-radius: 5px;
+    overflow: hidden;
+}
+.calc-prob-bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, rgba(255,147,28,0.5), #ff931c);
+    border-radius: 5px;
+    transition: width 0.6s ease;
+    min-width: 0;
+}
+.calc-prob-bar-label {
+    font-size: 0.78rem;
+    color: #888;
+    white-space: nowrap;
+}
+
+/* ─── Profit section divider ─── */
+.calc-profit-section {
+    border-top: 1px solid rgba(255,255,255,0.06);
+    padding-top: 4px;
+}
+
+/* ─── Footnote ─── */
+.calc-footnote {
+    font-size: 0.72rem;
+    color: #444;
+    text-align: center;
+    padding: 6px 0 2px;
+}
+.calc-footnote strong { color: #666; }
+
+/* ─── Responsive ─── */
+@media (max-width: 900px) {
+    .calc-inputs-grid { grid-template-columns: 1fr 1fr; }
+    .calc-field-device { grid-column: 1 / -1; }
+    .calc-grid-4 { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 600px) {
+    .calc-input-card { padding: 18px 16px !important; }
+    .compact-card { padding: 14px 16px !important; }
+    .calc-inputs-grid { grid-template-columns: 1fr; }
+    .calc-grid-3, .calc-grid-4 { grid-template-columns: repeat(2, 1fr); }
+    .calc-result-val { font-size: 1.25rem; }
+    .calc-prob-bar-wrap { flex-direction: column; align-items: flex-start; gap: 8px; }
+    .calc-prob-bar-track { width: 100%; }
+    .calc-mode-tabs .tab-btn { padding: 9px 18px; font-size: 0.85rem; }
+}
+@media (max-width: 400px) {
+    .calc-grid-3, .calc-grid-4 { grid-template-columns: 1fr; }
+}
+</style>
+
+<script>
+(function() {
+    // ── Live data ──────────────────────────────────────────────────────────────
+    let networkHashrate = 0;  // H/s
+    let blockReward = 0;       // BTC
+    let btcUsd = 0;
+    let btcEur = 0;
+    let dataLoaded = false;
+    let dataTimestamp = null;
+
+    const UNIT_MULT = { KH: 1e3, MH: 1e6, GH: 1e9, TH: 1e12 };
+
+    async function loadNetworkData() {
+        try {
+            const [netRes, priceRes, effRes] = await Promise.all([
+                window.secureFetch('/api/network'),
+                window.secureFetch('/api/price'),
+                window.secureFetch('/api/efficiency')
+            ]);
+            const netData  = await netRes.json();
+            const priceData = await priceRes.json();
+            const effData  = await effRes.json();
+
+            if (netData.success && netData.data) {
+                networkHashrate = netData.data.networkHashrate || 0;
+                setText('fn-nethash', formatHashrateLocal(networkHashrate));
+            }
+            if (priceData.success && priceData.data) {
+                btcUsd = priceData.data.USD || 0;
+                btcEur = priceData.data.EUR || 0;
+                setText('fn-price', '$' + btcUsd.toLocaleString(undefined, {maximumFractionDigits: 0}));
+            }
+            if (effData.success && effData.data) {
+                blockReward = effData.data.blockReward || 0;
+                setText('fn-reward', blockReward.toFixed(4) + ' BTC');
+            }
+
+            dataLoaded = true;
+            dataTimestamp = new Date();
+            setText('fn-time', 'just now');
+
+            // Update live badge
+            const badge = document.getElementById('calc-live-badge');
+            if (badge) badge.classList.add('loaded');
+            setText('calc-live-text', 'Live · ' + dataTimestamp.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}));
+
+            // Hide loading spinner
+            const loadEl = document.getElementById('calc-loading');
+            if (loadEl) loadEl.classList.add('hidden');
+
+            recalc();
+        } catch (err) {
+            console.error('Calculator: failed to load network data', err);
+            setText('calc-live-text', 'Error loading data');
+        }
+    }
+
+    // ── Helpers ────────────────────────────────────────────────────────────────
+    function setText(id, val) {
+        const el = document.getElementById(id);
+        if (el) el.textContent = val;
+    }
+
+    function formatHashrateLocal(hs) {
+        if (hs >= 1e18) return (hs / 1e18).toFixed(2) + ' EH/s';
+        if (hs >= 1e15) return (hs / 1e15).toFixed(2) + ' PH/s';
+        if (hs >= 1e12) return (hs / 1e12).toFixed(2) + ' TH/s';
+        if (hs >= 1e9)  return (hs / 1e9).toFixed(2) + ' GH/s';
+        if (hs >= 1e6)  return (hs / 1e6).toFixed(2) + ' MH/s';
+        if (hs >= 1e3)  return (hs / 1e3).toFixed(2) + ' KH/s';
+        return hs.toFixed(0) + ' H/s';
+    }
+
+    function formatPct(p) {
+        if (p < 0.0001)  return p.toExponential(2) + '%';
+        if (p < 0.01)    return p.toFixed(6) + '%';
+        if (p < 1)       return p.toFixed(4) + '%';
+        return p.toFixed(2) + '%';
+    }
+
+    function formatBtc(btc) {
+        if (btc < 0.000001) return btc.toExponential(4) + ' BTC';
+        if (btc < 0.001)    return btc.toFixed(8) + ' BTC';
+        return btc.toFixed(6) + ' BTC';
+    }
+
+    function formatDuration(days) {
+        if (days < 1)        return Math.round(days * 24) + ' hours';
+        if (days < 7)        return days.toFixed(1) + ' days';
+        if (days < 60)       return (days / 7).toFixed(1) + ' weeks';
+        if (days < 365 * 2)  return (days / 30).toFixed(1) + ' months';
+        return (days / 365).toFixed(1) + ' years';
+    }
+
+    function getUserHashrate() {
+        const hrVal  = parseFloat(document.getElementById('calc-hashrate').value) || 0;
+        const unit   = document.getElementById('calc-unit').value;
+        return hrVal * (UNIT_MULT[unit] || 1e12);
+    }
+
+    function getUserPower()  { return parseFloat(document.getElementById('calc-power').value) || 0; }
+    function getUserElec()   { return parseFloat(document.getElementById('calc-elec').value) || 0; }
+
+    // ── Recalc ─────────────────────────────────────────────────────────────────
+    function recalc() {
+        if (!dataLoaded || networkHashrate <= 0) return;
+
+        const hashrate = getUserHashrate();
+        const watts    = getUserPower();
+        const kwhPrice = getUserElec();
+
+        if (hashrate <= 0) {
+            clearResults();
+            return;
+        }
+
+        const shareOfNetwork = hashrate / networkHashrate;
+        const blocksPerDay   = shareOfNetwork * 144;
+        const expectedDays   = 1 / blocksPerDay;
+        const btcPerDay      = blocksPerDay * blockReward;
+
+        // Probabilities
+        const p1 = 1 - Math.pow(1 - shareOfNetwork, 144);
+        const p7 = 1 - Math.pow(1 - shareOfNetwork, 144 * 7);
+        const p30 = 1 - Math.pow(1 - shareOfNetwork, 144 * 30);
+        const p365 = 1 - Math.pow(1 - shareOfNetwork, 144 * 365);
+
+        // ── Solo results ───────────────────────────────────────────────────────
+        setText('solo-share',  formatPct(shareOfNetwork * 100));
+        setText('solo-expected-time', '~' + formatDuration(expectedDays));
+        setText('solo-block-value', blockReward.toFixed(4) + ' BTC');
+
+        setText('solo-prob-day',   formatPct(p1 * 100));
+        setText('solo-prob-week',  formatPct(p7 * 100));
+        setText('solo-prob-month', formatPct(p30 * 100));
+        setText('solo-prob-year',  formatPct(p365 * 100));
+
+        // Probability bar (monthly, capped at 100%, min visual 0.5%)
+        const barPct = Math.min(100, p30 * 100);
+        const barEl = document.getElementById('solo-prob-bar');
+        if (barEl) barEl.style.width = Math.max(barPct > 0 ? 0.5 : 0, barPct) + '%';
+        const barLbl = document.getElementById('solo-prob-bar-label');
+        if (barLbl) barLbl.textContent = formatPct(p30 * 100) + ' chance this month';
+
+        // ── Shared results ─────────────────────────────────────────────────────
+        const btcPerMonth = btcPerDay * 30;
+        const usdPerDay   = btcPerDay * btcUsd;
+        const usdPerMonth = usdPerDay * 30;
+
+        setText('shared-btc-day',   formatBtc(btcPerDay));
+        setText('shared-btc-month', formatBtc(btcPerMonth));
+        setText('shared-usd-month', '$' + usdPerMonth.toFixed(2));
+
+        // Electricity / profit
+        const profitSection = document.getElementById('shared-profit-section');
+        if (watts > 0 && kwhPrice > 0) {
+            const elecCostPerDay = (watts * 24 / 1000) * kwhPrice;
+            const profitPerDay   = usdPerDay - elecCostPerDay;
+
+            setText('shared-revenue-day', '$' + usdPerDay.toFixed(2));
+            setText('shared-elec-day',   '-$' + elecCostPerDay.toFixed(2));
+            setText('shared-profit-day',  (profitPerDay >= 0 ? '+$' : '-$') + Math.abs(profitPerDay).toFixed(2));
+
+            const profitEl = document.getElementById('shared-profit-day');
+            if (profitEl) {
+                profitEl.className = 'calc-result-val ' + (profitPerDay >= 0 ? 'success' : 'warning');
+            }
+            if (profitSection) profitSection.style.display = '';
+        } else {
+            if (profitSection) profitSection.style.display = 'none';
+        }
+    }
+
+    function clearResults() {
+        const ids = [
+            'solo-share','solo-expected-time','solo-block-value',
+            'solo-prob-day','solo-prob-week','solo-prob-month','solo-prob-year',
+            'shared-btc-day','shared-btc-month','shared-usd-month',
+            'shared-revenue-day','shared-elec-day','shared-profit-day'
+        ];
+        ids.forEach(id => setText(id, '—'));
+        const barEl = document.getElementById('solo-prob-bar');
+        if (barEl) barEl.style.width = '0%';
+        const barLbl = document.getElementById('solo-prob-bar-label');
+        if (barLbl) barLbl.textContent = '0% chance this month';
+        const profitSection = document.getElementById('shared-profit-section');
+        if (profitSection) profitSection.style.display = 'none';
+    }
+
+    // ── Device dropdown ────────────────────────────────────────────────────────
+    function handleDeviceChange() {
+        const sel = document.getElementById('calc-device');
+        const opt = sel.options[sel.selectedIndex];
+        const hr   = opt.dataset.hr;
+        const unit = opt.dataset.unit;
+        const pw   = opt.dataset.power;
+
+        const hrInput  = document.getElementById('calc-hashrate');
+        const unitSel  = document.getElementById('calc-unit');
+        const pwInput  = document.getElementById('calc-power');
+
+        if (hr !== undefined && hr !== '') {
+            hrInput.value = hr;
+            if (unit) unitSel.value = unit;
+        } else {
+            // Custom
+            hrInput.value = '';
+            hrInput.focus();
+        }
+
+        if (pw !== undefined && pw !== '') {
+            pwInput.value = pw;
+        } else {
+            pwInput.value = '';
+        }
+
+        recalc();
+    }
+
+    // ── Wire up events ─────────────────────────────────────────────────────────
+    document.addEventListener('DOMContentLoaded', function() {
+        // Initialize tabs using existing main.js initTabs
+        if (typeof initTabs === 'function') initTabs();
+
+        document.getElementById('calc-device').addEventListener('change', handleDeviceChange);
+
+        ['calc-hashrate','calc-unit','calc-power','calc-elec'].forEach(id => {
+            const el = document.getElementById(id);
+            if (el) el.addEventListener('input', recalc);
+        });
+
+        // Trigger device fill on load (first option selected by default)
+        handleDeviceChange();
+
+        // Fetch live data
+        loadNetworkData();
+    });
+})();
+</script>
