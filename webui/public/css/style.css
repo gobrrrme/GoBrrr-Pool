@@ -1930,6 +1930,18 @@ body {
     line-height: 1.8;
 }
 
+.stratum-hint {
+    color: #ff931c;
+    font-family: monospace;
+}
+
+.stratum-note {
+    color: #888;
+    font-size: 0.8rem;
+    margin-top: 6px;
+    font-weight: 400;
+}
+
 /* ===========================================
    HOME PAGE SECTIONS
    =========================================== */
@@ -2019,17 +2031,6 @@ body {
 }
 
 /* Leaderboard Section */
-.leaderboard-warning {
-    background: rgba(255, 193, 7, 0.1);
-    border: 1px solid rgba(255, 193, 7, 0.3);
-    border-radius: 8px;
-    padding: 10px 14px;
-    margin-bottom: 15px;
-    font-size: 0.85rem;
-    color: #ffc107;
-    text-align: center;
-}
-
 .leaderboard-table-wrapper {
     max-height: 520px;
     overflow-y: auto;

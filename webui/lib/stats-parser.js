@@ -176,6 +176,7 @@ function parseUserStats(raw) {
         hashrate: {
             current: hashrate1m,
             avg1m: hashrate1m,
+            avg5m: hashrate5m,
             avg15m: 0, // Not provided by ckpool
             avg1h: hashrate1h,
             avg24h: hashrate1d,

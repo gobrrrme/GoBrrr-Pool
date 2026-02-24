@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const ckpool = require('../lib/ckpool-client');
-const { parseUserStats, parsePoolStats, aggregateMinerTypes, parseMinerType } = require('../lib/stats-parser');
+const { parseUserStats, parsePoolStats, aggregateMinerTypes, parseMinerType, formatHashrate, formatDifficulty } = require('../lib/stats-parser');
 const minerCache = require('../lib/miner-cache');
 
 // Mempool API base URL - can be local (Umbrel) or public
@@ -25,14 +25,8 @@ router.get('/network', async (req, res) => {
         }
 
         // Fetch data in parallel - use ckpool for what we have, mempool for the rest
-        const [
-            poolStats,
-            diffData,
-            feeData,
-            mempoolData,
-            hashrateData,
-            recentBlocks
-        ] = await Promise.all([
+        // allSettled ensures a single failing source doesn't bring down the whole endpoint
+        const results = await Promise.allSettled([
             ckpool.getPoolStats(),
             fetchJSON(`${MEMPOOL_API}/v1/difficulty-adjustment`),
             fetchJSON(`${MEMPOOL_API}/v1/fees/recommended`),
@@ -40,6 +34,8 @@ router.get('/network', async (req, res) => {
             fetchJSON(`${MEMPOOL_API}/v1/mining/hashrate/3d`),
             fetchJSON(`${MEMPOOL_API}/v1/blocks`)
         ]);
+        const [poolStats, diffData, feeData, mempoolData, hashrateData, recentBlocks]
+            = results.map(r => r.status === 'fulfilled' ? r.value : null);
 
         // Get block height and network diff from ckpool (local source)
         const ckpoolParsed = parsePoolStats(poolStats.poolstats, poolStats.stratifier, poolStats.connector);
@@ -174,8 +170,9 @@ router.get('/pool', async (req, res) => {
 
         const poolStats = await ckpool.getPoolStats();
 
-        // Debug: log raw stratifierstats
-        console.log('Raw stratifierstats:', JSON.stringify(poolStats.stratifier, null, 2));
+        if (process.env.NODE_ENV !== 'production') {
+            console.log('Raw stratifierstats:', JSON.stringify(poolStats.stratifier, null, 2));
+        }
 
         const parsed = parsePoolStats(poolStats.poolstats, poolStats.stratifier, poolStats.connector);
 
@@ -276,6 +273,12 @@ router.get('/leaderboard', async (req, res) => {
                 return { fullName, bestDiff, worker };
             })
             .filter(item => item.bestDiff > 0)
+            .filter(item => {
+                // Hide workers inactive for more than 28 days
+                const lastSeen = cache.lastSeenAt?.[item.fullName] || 0;
+                if (lastSeen === 0) return true; // No timestamp yet → keep (migrated entries)
+                return lastSeen > Math.floor(Date.now() / 1000) - (28 * 86400);
+            })
             .map(item => {
                 const { fullName, bestDiff, worker } = item;
                 // Extract worker name (part after the dot), show "anon" if no worker name
@@ -303,6 +306,9 @@ router.get('/leaderboard', async (req, res) => {
             })
             .sort((a, b) => b.bestDiff - a.bestDiff)
             .slice(0, 99); // Top 99
+
+        // Persist any bestDiff updates accumulated during getBestDiffFromAllSources calls
+        minerCache.saveCache(cache);
 
         res.json({ success: true, data: leaderboard });
     } catch (err) {
@@ -395,7 +401,8 @@ router.get('/efficiency', async (req, res) => {
         const estimatedBlockFees = (currentFees.hour * 250 * 3000) / 100000000; // in BTC
 
         // Block reward estimation (subsidy + estimated fees)
-        const blockSubsidy = 3.125; // BTC
+        // Subsidy halves every 210000 blocks; calculate from current height
+        const blockSubsidy = 50 / Math.pow(2, Math.floor(blockHeight / 210000));
         const blockReward = blockSubsidy + estimatedBlockFees;
 
         // Expected daily revenue (purely statistical)
@@ -454,15 +461,6 @@ router.get('/efficiency', async (req, res) => {
     }
 });
 
-// Helper: Format hashrate
-function formatHashrate(h) {
-    if (!h || h === 0) return '0 H/s';
-    const units = ['H/s', 'KH/s', 'MH/s', 'GH/s', 'TH/s', 'PH/s', 'EH/s', 'ZH/s'];
-    let i = 0;
-    while (h >= 1000 && i < units.length - 1) { h /= 1000; i++; }
-    return h.toFixed(2) + ' ' + units[i];
-}
-
 // Helper: Format time duration
 function formatTime(seconds) {
     if (!isFinite(seconds)) return 'Never (need more hashrate)';
@@ -475,17 +473,6 @@ function formatTime(seconds) {
     if (years >= 1000000) return Math.round(years / 1000000).toLocaleString() + ' million years';
     if (years >= 1000) return Math.round(years / 1000).toLocaleString() + 'k years';
     return Math.round(years).toLocaleString() + ' years';
-}
-
-// Helper: Format difficulty
-function formatDifficulty(diff) {
-    if (!diff) return '0';
-    if (diff >= 1e15) return (diff / 1e15).toFixed(2) + ' P';
-    if (diff >= 1e12) return (diff / 1e12).toFixed(2) + ' T';
-    if (diff >= 1e9) return (diff / 1e9).toFixed(2) + ' G';
-    if (diff >= 1e6) return (diff / 1e6).toFixed(2) + ' M';
-    if (diff >= 1e3) return (diff / 1e3).toFixed(2) + ' K';
-    return diff.toFixed(2);
 }
 
 // Helper: Format very small percentages with 2 significant digits

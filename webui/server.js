@@ -5,6 +5,7 @@ const expressLayouts = require('express-ejs-layouts');
 const indexRoutes = require('./routes/index');
 const apiRoutes = require('./routes/api');
 const { rateLimit, protectApi, injectToken } = require('./lib/api-security');
+const minerCache = require('./lib/miner-cache');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -56,3 +57,10 @@ app.use((req, res) => {
 app.listen(PORT, '0.0.0.0', () => {
     console.log(`CKPool WebUI running on http://0.0.0.0:${PORT}`);
 });
+
+// Prune inactive leaderboard entries daily
+// First run 1h after startup to avoid noise during initial cache warm-up
+setTimeout(() => {
+    minerCache.pruneInactiveWorkers();
+    setInterval(() => minerCache.pruneInactiveWorkers(), 86400000);
+}, 3600000);

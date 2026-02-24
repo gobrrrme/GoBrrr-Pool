@@ -51,9 +51,10 @@ router.get('/stats/:address', async (req, res) => {
             ckpool.getUserClients(address)
         ]);
 
-        // Debug log
-        console.log(`User stats for ${address}:`, JSON.stringify(userStats));
-        console.log(`Client info for ${address}:`, JSON.stringify(clientData));
+        if (process.env.NODE_ENV !== 'production') {
+            console.log(`User stats for ${address}:`, JSON.stringify(userStats));
+            console.log(`Client info for ${address}:`, JSON.stringify(clientData));
+        }
 
         // parseUserStats returns null for invalid/unknown users
         const parsed = parseUserStats(userStats);
@@ -75,7 +76,7 @@ router.get('/stats/:address', async (req, res) => {
             // more stable than per-connection ucinfo values)
             clients.forEach((client, index) => {
                 const workerStats = workerStatsResults[index];
-                if (workerStats && !workerStats.error && workerStats.dsps1) {
+                if (workerStats && !workerStats.error && workerStats.dsps1 !== undefined) {
                     client.dsps1 = workerStats.dsps1;
                 }
             });
@@ -106,6 +107,8 @@ router.get('/stats/:address', async (req, res) => {
             const fullWorkerName = workerSuffix ? `${address}.${workerSuffix}` : address;
             client.bestdiff = minerCache.getBestDiffFromAllSources(fullWorkerName, client.bestdiff, cache);
         });
+        // Save cache once after the loop (getBestDiffFromAllSources only updates in-memory)
+        minerCache.saveCache(cache);
 
         // Update user's bestDiff - use the highest from all their workers
         let userBestDiff = parsed.bestDiff;
@@ -164,8 +167,10 @@ router.get('/stats/:address/:worker', async (req, res) => {
             ckpool.getWorkerClients(fullWorkerName)
         ]);
 
-        console.log(`Worker stats for ${fullWorkerName}:`, JSON.stringify(workerStats));
-        console.log(`Worker clients for ${fullWorkerName}:`, JSON.stringify(clientData));
+        if (process.env.NODE_ENV !== 'production') {
+            console.log(`Worker stats for ${fullWorkerName}:`, JSON.stringify(workerStats));
+            console.log(`Worker clients for ${fullWorkerName}:`, JSON.stringify(clientData));
+        }
 
         if (!workerStats || workerStats.error || workerStats === 'unknown') {
             return res.render('worker-stats', {
@@ -195,6 +200,8 @@ router.get('/stats/:address/:worker', async (req, res) => {
             workerStats.bestdiff || 0
         );
         const bestDiff = minerCache.getBestDiffFromAllSources(fullWorkerName, apiBestDiff, cache);
+        // Save cache once after lookup (getBestDiffFromAllSources only updates in-memory)
+        minerCache.saveCache(cache);
 
         // Parse client info for miner type
         let minerType = 'Unknown';

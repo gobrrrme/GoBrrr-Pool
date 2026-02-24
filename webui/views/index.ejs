@@ -6,7 +6,9 @@
             <h3>Stratum Host</h3>
             <div class="stratum-info">
                 <div class="stratum-line">stratum: <span id="stratum-host">loading...</span>:<%= stratumPort %></div>
-                <div class="stratum-line">username: BTC address.workername &nbsp; password: x</div>
+                <div class="stratum-line">username: <span class="stratum-hint">BTC_address.workername</span></div>
+                <div class="stratum-line">password: <span class="stratum-hint">x</span> &nbsp;or&nbsp; <span class="stratum-hint">d=XXXX</span> to request a specific difficulty</div>
+                <div class="stratum-note">Worker names are visible on the Leaderboard</div>
             </div>
             <h3>Worker Lookup</h3>
             <p>Enter your Bitcoin address to view stats</p>
@@ -171,7 +173,6 @@
         <!-- Leaderboard -->
         <div class="home-section leaderboard-section">
             <h3>Leaderboard - Best Difficulties</h3>
-            <div class="leaderboard-warning">Warning: Worker names appended to addresses will be displayed here!</div>
             <div class="leaderboard-table-wrapper">
                 <table class="leaderboard-table">
                     <thead>

@@ -20,14 +20,15 @@ function loadCache() {
         if (fs.existsSync(CACHE_FILE)) {
             const data = fs.readFileSync(CACHE_FILE, 'utf8');
             const cache = JSON.parse(data);
-            // Ensure bestDiffs exists for backwards compatibility
+            // Backwards compatibility: ensure required fields exist
             if (!cache.bestDiffs) cache.bestDiffs = {};
+            if (!cache.lastSeenAt) cache.lastSeenAt = {};
             return cache;
         }
     } catch (err) {
         console.error('Failed to load miner cache:', err.message);
     }
-    return { workers: {}, users: {}, bestDiffs: {} };
+    return { workers: {}, users: {}, bestDiffs: {}, lastSeenAt: {} };
 }
 
 // Save cache to file
@@ -47,21 +48,27 @@ function updateFromClients(clients, parseMinerType) {
     const cache = loadCache();
     let updated = false;
 
+    const now = Math.floor(Date.now() / 1000);
+
     clients.forEach(client => {
-        if (client.workername && client.useragent) {
+        if (!client.workername) return;
+
+        // Track lastSeen for all connected workers regardless of useragent
+        cache.lastSeenAt[client.workername] = now;
+        updated = true;
+
+        if (client.useragent) {
             const minerInfo = parseMinerType(client.useragent);
             const user = client.workername.split('.')[0];
 
             // Update worker -> miner type
             if (cache.workers[client.workername] !== minerInfo.name) {
                 cache.workers[client.workername] = minerInfo.name;
-                updated = true;
             }
 
             // Update user -> miner type (keeps latest)
             if (user) {
                 cache.users[user] = minerInfo.name;
-                updated = true;
             }
         }
     });
@@ -97,10 +104,15 @@ function updateBestDiffs(workers, cache) {
     if (!cache) cache = loadCache();
 
     let updated = false;
+    const now = Math.floor(Date.now() / 1000);
 
     workers.forEach(worker => {
         const fullName = worker.worker || worker.workername || '';
         if (!fullName) return;
+
+        // Track lastSeen for every worker we see from ckpool
+        cache.lastSeenAt[fullName] = now;
+        updated = true;
 
         // Get all possible best diff values from ckpool
         const currentBest = Math.max(
@@ -115,7 +127,6 @@ function updateBestDiffs(workers, cache) {
             // Only update if new value is higher
             if (currentBest > storedBest) {
                 cache.bestDiffs[fullName] = currentBest;
-                updated = true;
                 console.log(`New best diff for ${fullName.split('.').slice(1).join('.') || 'anon'}: ${currentBest} (was ${storedBest})`);
             }
         }
@@ -245,13 +256,37 @@ function getBestDiffFromAllSources(fullName, currentBest, cache) {
     // Return the maximum from all sources
     const maxBest = Math.max(cachedBest, apiBest, fileBest);
 
-    // Update our cache if we found a higher value
+    // Update in-memory cache if we found a higher value (caller is responsible for saving)
     if (maxBest > cachedBest) {
         cache.bestDiffs[fullName] = maxBest;
-        saveCache(cache);
     }
 
     return maxBest;
+}
+
+// Remove leaderboard entries for workers inactive longer than maxAgeDays.
+// Workers with no lastSeenAt timestamp (old cache entries) are kept until they're seen once.
+function pruneInactiveWorkers(maxAgeDays = 28) {
+    const cache = loadCache();
+    const cutoff = Math.floor(Date.now() / 1000) - (maxAgeDays * 86400);
+    let pruned = 0;
+
+    for (const name of Object.keys(cache.bestDiffs)) {
+        const lastSeen = cache.lastSeenAt[name] || 0;
+        if (lastSeen > 0 && lastSeen < cutoff) {
+            delete cache.bestDiffs[name];
+            delete cache.workers[name];
+            delete cache.lastSeenAt[name];
+            pruned++;
+        }
+    }
+
+    if (pruned > 0) {
+        saveCache(cache);
+        console.log(`Pruned ${pruned} workers inactive >${maxAgeDays} days from leaderboard cache`);
+    }
+
+    return pruned;
 }
 
 module.exports = {
@@ -262,6 +297,7 @@ module.exports = {
     updateBestDiffs,
     getBestDiff,
     getBestDiffFromAllSources,
+    pruneInactiveWorkers,
     scanCkpoolBestDiffs,
     readBestDiffFromCkpoolFile
 };
