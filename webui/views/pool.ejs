@@ -2,7 +2,7 @@
     <h1 class="page-title">Pool Statistics</h1>
     <% if (pool) { %>
 
-    <div class="pool-sections">
+    <div class="home-sections">
 
         <!-- Pool & Network Hero Card (full width) -->
         <div class="home-section hero-card">
@@ -60,10 +60,10 @@
         </div>
 
         <!-- Two-column row: Block Potential + Share Performance -->
-        <div class="pool-cols-2">
+        <div class="home-section pool-cols-2">
 
             <!-- Block Potential (populated via /api/efficiency) -->
-            <div class="home-section hero-card compact-card">
+            <div class="hero-card compact-card">
                 <div class="hero-header">
                     <div class="hero-title-section">
                         <h2>Block Potential</h2>
@@ -109,7 +109,7 @@
             </div>
 
             <!-- Share Performance + Pool Status -->
-            <div class="home-section fee-rates compact-card">
+            <div class="fee-rates compact-card">
                 <h3>Share Performance</h3>
                 <div class="fee-grid">
                     <div class="fee-item">
@@ -233,11 +233,15 @@
 </div>
 
 <style>
-.pool-sections {
+.pool-container .home-sections {
     display: flex;
     flex-direction: column;
     gap: 15px;
     margin-bottom: 20px;
+}
+
+.pool-cols-2 > * {
+    margin-bottom: 0;
 }
 
 .pool-cols-2 {
