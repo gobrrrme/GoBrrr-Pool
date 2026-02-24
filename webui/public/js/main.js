@@ -176,24 +176,15 @@ const MAX_RECENT_SEARCHES = 5;
 const RECENT_SEARCHES_TTL = 48 * 60 * 60 * 1000; // 48 hours in milliseconds
 
 function loadRecentSearches() {
-    const container = document.getElementById('search-list');
-    if (!container) return;
+    const chips = document.getElementById('lookup-chips');
+    if (!chips) return;
 
     const searches = getRecentSearches();
-
-    if (searches.length === 0) {
-        container.innerHTML = '';
-        return;
-    }
-
-    container.innerHTML = searches.map(item => `
-        <div class="search-item-wrapper">
-            <a href="/stats/${item.address}" class="search-item">
-                <span class="address">${truncateAddress(item.address)}</span>
-                <span class="arrow">&rarr;</span>
-            </a>
-            <button class="search-item-delete" onclick="removeRecentSearch('${item.address}')" title="Remove">&times;</button>
-        </div>
+    chips.innerHTML = searches.map(item => `
+        <span class="lookup-chip">
+            <a href="/stats/${item.address}" class="lookup-chip-addr">${truncateAddress(item.address)}</a>
+            <button class="lookup-chip-del" onclick="event.preventDefault();removeRecentSearch('${item.address}')" title="Remove">&times;</button>
+        </span>
     `).join('');
 }
 

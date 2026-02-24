@@ -1,201 +1,192 @@
 <div class="pool-container">
-    <h1 class="page-title">Pool Statistics</h1>
-    <% if (pool) { %>
+<% if (pool) { %>
+
+    <%
+        var hrValues = [pool.hashrate1m, pool.hashrate5m, pool.hashrate15m, pool.hashrate1h, pool.hashrate6h, pool.hashrate1d, pool.hashrate7d].filter(function(v){ return v > 0; });
+        var maxHr = hrValues.length > 0 ? Math.max.apply(null, hrValues) : 1;
+        function hrPct(v) { return v > 0 ? Math.max(4, (v / maxHr * 100)).toFixed(1) : 0; }
+    %>
 
     <div class="home-sections">
 
-        <!-- Pool & Network Hero Card (full width) -->
-        <div class="home-section hero-card">
-            <div class="hero-header">
-                <div class="hero-title-section">
-                    <h2>Pool & Network</h2>
-                    <span class="live-indicator">
-                        <span class="live-dot"></span>
-                        <%= pool.workers %> workers connected
-                    </span>
+        <!-- Pool & Network Hero Card -->
+        <div class="home-section hero-card pool-hero">
+            <div class="pool-hero-body">
+                <div class="pool-hero-left">
+                    <div class="pool-section-label">Pool Status</div>
+                    <div class="pool-hero-main-stat">
+                        <div class="pool-hero-number"><%= formatHashrate(pool.hashrate) %></div>
+                        <div class="pool-hero-unit">1-min hashrate</div>
+                    </div>
+                    <div class="pool-meta-row">
+                        <div class="pool-meta-item">
+                            <span class="pool-meta-val"><%= pool.workers %></span>
+                            <span class="pool-meta-lbl">workers</span>
+                        </div>
+                        <div class="pool-meta-dot">·</div>
+                        <div class="pool-meta-item">
+                            <span class="pool-meta-val"><%= pool.users %></span>
+                            <span class="pool-meta-lbl">users</span>
+                        </div>
+                        <div class="pool-meta-dot">·</div>
+                        <div class="pool-meta-item">
+                            <span class="pool-meta-val"><%= pool.sps1.toFixed(2) %></span>
+                            <span class="pool-meta-lbl">shares/s</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="pool-hero-divider"></div>
+                <div class="pool-hero-right">
+                    <div class="pool-section-label">Network</div>
+                    <div class="pool-net-grid">
+                        <div class="pool-net-item">
+                            <div class="pool-net-val"><%= formatHashrate(networkHashrate) %></div>
+                            <div class="pool-net-lbl">Network Hashrate</div>
+                        </div>
+                        <div class="pool-net-item">
+                            <div class="pool-net-val"><%= formatDifficulty(pool.networkDiff) %></div>
+                            <div class="pool-net-lbl">Difficulty</div>
+                        </div>
+                        <div class="pool-net-item">
+                            <div class="pool-net-val"><%= pool.blockHeight || 'N/A' %></div>
+                            <div class="pool-net-lbl">Next Block</div>
+                        </div>
+                        <div class="pool-net-item">
+                            <div class="pool-net-val <%= networkShare > 0 ? 'accent' : '' %>">
+                                <%= networkShare > 0 ? (networkShare >= 0.0001 ? networkShare.toFixed(6) + '%' : '< 0.0001%') : 'N/A' %>
+                            </div>
+                            <div class="pool-net-lbl">Network Share</div>
+                        </div>
+                    </div>
                 </div>
             </div>
-            <div class="hero-stats">
-                <div class="hero-stat primary">
-                    <div class="hero-stat-value"><%= formatHashrate(pool.hashrate) %></div>
-                    <div class="hero-stat-label">Pool Hashrate</div>
+            <div class="pool-records-row">
+                <div class="pool-record-item highlight-item">
+                    <span class="pool-record-lbl">Best Ever Difficulty</span>
+                    <span class="pool-record-val highlight"><%= formatDifficulty(pool.bestDiff) %></span>
                 </div>
-                <div class="hero-stat">
-                    <div class="hero-stat-value"><%= pool.workers %></div>
-                    <div class="hero-stat-label">Workers</div>
+                <div class="pool-record-item">
+                    <span class="pool-record-lbl">Total Shares</span>
+                    <span class="pool-record-val"><%= pool.shares.toLocaleString() %></span>
                 </div>
-                <div class="hero-stat">
-                    <div class="hero-stat-value"><%= pool.users %></div>
-                    <div class="hero-stat-label">Users</div>
+                <div class="pool-record-item">
+                    <span class="pool-record-lbl">Uptime</span>
+                    <span class="pool-record-val"><%= pool.uptime > 0 ? timeAgo(Math.floor(Date.now()/1000) - pool.uptime).replace(' ago', '') : 'N/A' %></span>
                 </div>
-                <div class="hero-stat">
-                    <div class="hero-stat-value"><%= formatHashrate(networkHashrate) %></div>
-                    <div class="hero-stat-label">Network Hashrate</div>
+                <div class="pool-record-item">
+                    <span class="pool-record-lbl">Started</span>
+                    <span class="pool-record-val"><%= pool.startTime > 1577836800 ? timeAgo(pool.startTime) : 'N/A' %></span>
                 </div>
             </div>
-            <div class="hero-details">
-                <div class="hero-detail-row">
-                    <div class="hero-detail">
-                        <span class="detail-label">Best Ever Difficulty</span>
-                        <span class="detail-value highlight"><%= formatDifficulty(pool.bestDiff) %></span>
+        </div>
+
+        <!-- Block Potential (full width) -->
+        <div class="home-section hero-card compact-card pool-potential-card">
+            <div class="pool-section-label">Block Potential</div>
+            <div class="pool-potential-layout">
+                <div class="pool-potential-left">
+                    <div class="pool-potential-time" id="expected-time">Calculating…</div>
+                    <div class="pool-potential-sublabel">Expected Block Time</div>
+                    <div class="pool-fee-strip">
+                        <span class="pool-fee-strip-label">sat/vB</span>
+                        <span class="pool-fee-chip">Fast <strong id="fee-fast">—</strong></span>
+                        <span class="pool-fee-chip">Mid <strong id="fee-medium">—</strong></span>
+                        <span class="pool-fee-chip">Low <strong id="fee-economy">—</strong></span>
+                        <span class="pool-fee-sep">|</span>
+                        <span class="pool-fee-chip dim">Subsidy <strong id="block-subsidy">—</strong></span>
+                        <span class="pool-fee-chip dim">Fees <strong id="block-fees">—</strong></span>
                     </div>
-                    <div class="hero-detail">
-                        <span class="detail-label">Network Difficulty</span>
-                        <span class="detail-value"><%= formatDifficulty(pool.networkDiff) %></span>
+                </div>
+                <div class="pool-potential-right">
+                    <div class="pool-potential-stat">
+                        <div class="pool-potential-val" id="daily-probability">—</div>
+                        <div class="pool-potential-lbl">Daily Chance</div>
                     </div>
-                    <div class="hero-detail">
-                        <span class="detail-label">Network Share</span>
-                        <span class="detail-value"><%= networkShare > 0 ? (networkShare >= 0.0001 ? networkShare.toFixed(6) + '%' : '< 0.0001%') : 'N/A' %></span>
+                    <div class="pool-potential-stat">
+                        <div class="pool-potential-val" id="block-reward">—</div>
+                        <div class="pool-potential-lbl">Block Reward</div>
                     </div>
-                    <div class="hero-detail">
-                        <span class="detail-label">Next Block</span>
-                        <span class="detail-value"><%= pool.blockHeight || 'N/A' %></span>
-                    </div>
-                    <div class="hero-detail">
-                        <span class="detail-label">Total Shares</span>
-                        <span class="detail-value"><%= pool.shares.toLocaleString() %></span>
+                    <div class="pool-potential-stat">
+                        <div class="pool-potential-val" id="daily-revenue">—</div>
+                        <div class="pool-potential-lbl">Expected Daily</div>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- Two-column row: Block Potential + Share Performance -->
-        <div class="home-section pool-cols-2">
-
-            <!-- Block Potential (populated via /api/efficiency) -->
-            <div class="hero-card compact-card">
-                <div class="hero-header">
-                    <div class="hero-title-section">
-                        <h2>Block Potential</h2>
-                    </div>
-                </div>
-                <div class="hero-stats">
-                    <div class="hero-stat primary">
-                        <div class="hero-stat-value" id="expected-time">Calculating...</div>
-                        <div class="hero-stat-label">Expected Block Time</div>
-                    </div>
-                    <div class="hero-stat">
-                        <div class="hero-stat-value" id="daily-probability">-</div>
-                        <div class="hero-stat-label">Daily Chance</div>
-                    </div>
-                    <div class="hero-stat">
-                        <div class="hero-stat-value" id="block-reward">-</div>
-                        <div class="hero-stat-label">Block Reward</div>
-                    </div>
-                    <div class="hero-stat">
-                        <div class="hero-stat-value" id="daily-revenue">-</div>
-                        <div class="hero-stat-label">Expected Daily</div>
-                    </div>
-                </div>
-                <div class="hero-details">
-                    <div class="hero-detail-row">
-                        <div class="hero-detail">
-                            <span class="detail-label">Block Subsidy</span>
-                            <span class="detail-value" id="block-subsidy">-</span>
-                        </div>
-                        <div class="hero-detail">
-                            <span class="detail-label">Est. Fees</span>
-                            <span class="detail-value" id="block-fees">-</span>
-                        </div>
-                    </div>
-                    <!-- Fee Rates -->
-                    <div class="fee-rates-mini">
-                        <span class="fee-mini-label">sat/vB:</span>
-                        <span class="fee-mini-item">High <strong id="fee-fast">-</strong></span>
-                        <span class="fee-mini-item">Mid <strong id="fee-medium">-</strong></span>
-                        <span class="fee-mini-item">Low <strong id="fee-economy">-</strong></span>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Share Performance + Pool Status -->
-            <div class="fee-rates compact-card">
-                <h3>Share Performance</h3>
-                <div class="fee-grid">
-                    <div class="fee-item">
-                        <span class="fee-label">Shares/sec</span>
-                        <span class="fee-value"><%= pool.sps1.toFixed(2) %></span>
-                    </div>
-                    <div class="fee-item">
-                        <span class="fee-label">Accepted Diff</span>
-                        <span class="fee-value success"><%= formatDifficulty(pool.accepted) %></span>
-                    </div>
-                    <div class="fee-item">
-                        <span class="fee-label">Rejected Diff</span>
-                        <span class="fee-value"><%= formatDifficulty(pool.rejected) %></span>
-                    </div>
-                    <div class="fee-item">
-                        <span class="fee-label">Reject Rate</span>
-                        <span class="fee-value <%= pool.rejected > 0 ? 'warning' : 'success' %>"><%= pool.accepted > 0 ? ((pool.rejected / (pool.accepted + pool.rejected)) * 100).toFixed(2) + '%' : '0%' %></span>
-                    </div>
-                </div>
-                <h3 style="margin-top: 18px;">Pool Status</h3>
-                <div class="fee-grid">
-                    <div class="fee-item">
-                        <span class="fee-label">Uptime</span>
-                        <span class="fee-value"><%= pool.uptime > 0 ? timeAgo(Math.floor(Date.now()/1000) - pool.uptime).replace(' ago', '') : 'N/A' %></span>
-                    </div>
-                    <div class="fee-item">
-                        <span class="fee-label">Started</span>
-                        <span class="fee-value"><%= pool.startTime > 1577836800 ? timeAgo(pool.startTime) : 'N/A' %></span>
-                    </div>
-                    <div class="fee-item">
-                        <span class="fee-label">Last Update</span>
-                        <span class="fee-value"><%= pool.lastUpdate > 1577836800 ? timeAgo(pool.lastUpdate) : 'Just now' %></span>
-                    </div>
-                    <div class="fee-item">
-                        <span class="fee-label">Connections</span>
-                        <span class="fee-value"><%= pool.connections || 'N/A' %></span>
-                    </div>
-                </div>
-            </div>
-
-        </div>
-
-        <!-- Hashrate Averages (compact) -->
+        <!-- Share Performance + Pool Status (full width) -->
         <div class="home-section fee-rates compact-card">
-            <h3>Hashrate Averages</h3>
-            <div class="fee-grid hashrate-avg-grid">
+            <div class="pool-section-label">Share Performance</div>
+            <div class="fee-grid pool-grid-4 pool-section-grid">
                 <div class="fee-item">
-                    <span class="fee-label">1m</span>
-                    <span class="fee-value"><%= formatHashrate(pool.hashrate1m) %></span>
+                    <span class="fee-label">Shares/sec</span>
+                    <span class="fee-value"><%= pool.sps1.toFixed(2) %></span>
                 </div>
                 <div class="fee-item">
-                    <span class="fee-label">5m</span>
-                    <span class="fee-value"><%= formatHashrate(pool.hashrate5m) %></span>
+                    <span class="fee-label">Accepted Diff</span>
+                    <span class="fee-value success"><%= formatDifficulty(pool.accepted) %></span>
                 </div>
                 <div class="fee-item">
-                    <span class="fee-label">15m</span>
-                    <span class="fee-value"><%= formatHashrate(pool.hashrate15m) %></span>
+                    <span class="fee-label">Rejected Diff</span>
+                    <span class="fee-value"><%= formatDifficulty(pool.rejected) %></span>
                 </div>
                 <div class="fee-item">
-                    <span class="fee-label">1h</span>
-                    <span class="fee-value"><%= formatHashrate(pool.hashrate1h) %></span>
+                    <span class="fee-label">Reject Rate</span>
+                    <span class="fee-value <%= pool.rejected > 0 ? 'warning' : 'success' %>"><%= pool.accepted > 0 ? ((pool.rejected / (pool.accepted + pool.rejected)) * 100).toFixed(2) + '%' : '0%' %></span>
+                </div>
+            </div>
+            <div class="pool-section-label" style="margin-top:20px;">Pool Status</div>
+            <div class="fee-grid pool-grid-4 pool-section-grid">
+                <div class="fee-item">
+                    <span class="fee-label">Uptime</span>
+                    <span class="fee-value"><%= pool.uptime > 0 ? timeAgo(Math.floor(Date.now()/1000) - pool.uptime).replace(' ago', '') : 'N/A' %></span>
                 </div>
                 <div class="fee-item">
-                    <span class="fee-label">6h</span>
-                    <span class="fee-value"><%= formatHashrate(pool.hashrate6h) %></span>
+                    <span class="fee-label">Started</span>
+                    <span class="fee-value"><%= pool.startTime > 1577836800 ? timeAgo(pool.startTime) : 'N/A' %></span>
                 </div>
                 <div class="fee-item">
-                    <span class="fee-label">24h</span>
-                    <span class="fee-value"><%= formatHashrate(pool.hashrate1d) %></span>
+                    <span class="fee-label">Last Update</span>
+                    <span class="fee-value"><%= pool.lastUpdate > 1577836800 ? timeAgo(pool.lastUpdate) : 'Just now' %></span>
                 </div>
                 <div class="fee-item">
-                    <span class="fee-label">7d</span>
-                    <span class="fee-value"><%= formatHashrate(pool.hashrate7d) %></span>
+                    <span class="fee-label">Connections</span>
+                    <span class="fee-value"><%= pool.connections || 'N/A' %></span>
                 </div>
+            </div>
+        </div>
+
+        <!-- Hashrate Timeline -->
+        <div class="home-section fee-rates compact-card">
+            <div class="pool-section-label">Hashrate Averages</div>
+            <div class="pool-hr-bars">
+                <% var hrLabels = ['1m','5m','15m','1h','6h','24h','7d'];
+                   var hrData = [pool.hashrate1m, pool.hashrate5m, pool.hashrate15m, pool.hashrate1h, pool.hashrate6h, pool.hashrate1d, pool.hashrate7d];
+                   hrLabels.forEach(function(lbl, i) {
+                       var val = hrData[i];
+                       var pct = hrPct(val);
+                       var isMax = val > 0 && val === maxHr;
+                %>
+                <div class="pool-hr-bar-row">
+                    <div class="pool-hr-bar-label"><%= lbl %></div>
+                    <div class="pool-hr-bar-track">
+                        <div class="pool-hr-bar-fill <%= isMax ? 'is-max' : '' %>" style="width:<%= pct %>%"></div>
+                    </div>
+                    <div class="pool-hr-bar-value <%= isMax ? 'is-max' : '' %>"><%= formatHashrate(val) %></div>
+                </div>
+                <% }); %>
             </div>
         </div>
 
         <% if (minerTypes && minerTypes.length > 0) { %>
         <!-- Connected Miner Types -->
         <div class="home-section fee-rates compact-card">
-            <h3>Connected Miner Types</h3>
-            <div class="miner-types-grid">
+            <div class="pool-section-label">Connected Hardware</div>
+            <div class="pool-miner-pills">
                 <% minerTypes.forEach(function(m) { %>
-                <div class="miner-type-card">
-                    <div class="miner-type-name"><%= m.name %></div>
-                    <div class="miner-type-count"><%= m.count %></div>
+                <div class="pool-miner-pill">
+                    <span class="pool-miner-pill-name"><%= m.name %></span>
+                    <span class="pool-miner-pill-count"><%= m.count %></span>
                 </div>
                 <% }); %>
             </div>
@@ -204,7 +195,7 @@
 
         <!-- Hashrate Chart -->
         <div class="home-section hashrate-section compact-card">
-            <h3>Pool Hashrate</h3>
+            <div class="pool-section-label">Pool Hashrate History</div>
             <div class="chart-container">
                 <% if (pool.hashrate1m > 0 || pool.hashrate5m > 0 || pool.hashrate1h > 0 || pool.hashrate1d > 0) { %>
                 <canvas id="pool-hashrate-chart"></canvas>
@@ -219,87 +210,287 @@
 
     </div>
 
-    <% } else { %>
-    <div class="no-data">
-        <p>Unable to load pool statistics.</p>
-        <p>The pool daemon may not be running.</p>
-    </div>
-    <% } %>
-
-    <div class="stats-actions">
-        <a href="/" class="btn btn-secondary">Back to Home</a>
-        <button class="btn btn-primary" onclick="location.reload()">Refresh</button>
-    </div>
+<% } else { %>
+<div class="no-data">
+    <p>Unable to load pool statistics.</p>
+    <p>The pool daemon may not be running.</p>
+</div>
+<% } %>
 </div>
 
 <style>
+/* ─── Layout ─── */
 .pool-container .home-sections {
     display: flex;
     flex-direction: column;
-    gap: 15px;
-    margin-bottom: 20px;
+    gap: 16px;
+    margin-bottom: 16px;
 }
+.compact-card { padding: 20px 24px !important; }
 
-.pool-cols-2 > * {
-    margin-bottom: 0;
-}
-
-.pool-cols-2 {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 15px;
-}
-
-.compact-card {
-    padding: 20px 24px !important;
-}
-
-.hashrate-avg-grid {
-    grid-template-columns: repeat(7, 1fr) !important;
-}
-
-.fee-rates-mini {
+/* ─── Section label with orange accent line ─── */
+.pool-section-label {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    color: #ff931c;
+    font-weight: 700;
+    margin-bottom: 10px;
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: 6px;
+}
+/* Stop the line before the drag handle (handle: right:15px, width:26px = 41px + buffer) */
+.pool-section-label::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: rgba(255,147,28,0.25);
+    margin-right: 52px;
+}
+
+/* ─── Pool Hero Card ─── */
+.pool-hero { padding: 24px 28px !important; }
+.pool-hero-body {
+    display: flex;
+    gap: 0;
+    align-items: stretch;
+    margin-bottom: 20px;
+}
+.pool-hero-left { flex: 1.2; min-width: 0; }
+.pool-hero-right { flex: 1; min-width: 0; }
+.pool-hero-divider {
+    width: 1px;
+    background: rgba(255,255,255,0.08);
+    margin: 0 28px;
+    flex-shrink: 0;
+}
+.pool-hero-main-stat { margin: 10px 0 16px; }
+.pool-hero-number {
+    font-size: 3rem;
+    font-weight: 800;
+    color: #ff931c;
+    letter-spacing: -1px;
+    line-height: 1;
+}
+.pool-hero-unit {
+    font-size: 0.8rem;
+    color: #555;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    margin-top: 4px;
+}
+.pool-meta-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 4px;
+}
+.pool-meta-item { display: flex; align-items: baseline; gap: 4px; }
+.pool-meta-val { font-size: 1.1rem; font-weight: 700; color: #c4c4c4; }
+.pool-meta-lbl { font-size: 0.75rem; color: #555; text-transform: uppercase; letter-spacing: 0.5px; }
+.pool-meta-dot { color: #333; font-size: 1.2rem; }
+
+.pool-net-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px 20px;
     margin-top: 10px;
-    padding-top: 10px;
-    border-top: 1px solid rgba(255,255,255,0.08);
-    font-size: 0.85rem;
+}
+.pool-net-val {
+    font-size: 1rem;
+    font-weight: 700;
     color: #c4c4c4;
+    line-height: 1.2;
+}
+.pool-net-val.accent { color: #00d26a; }
+.pool-net-lbl {
+    font-size: 0.72rem;
+    color: #555;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-top: 2px;
+}
+
+.pool-records-row {
+    display: flex;
+    gap: 0;
+    border-top: 1px solid rgba(255,255,255,0.06);
+    padding-top: 16px;
     flex-wrap: wrap;
 }
-
-.fee-mini-label {
-    color: #888;
+.pool-record-item {
+    flex: 1;
+    min-width: 120px;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    padding: 0 16px;
+    border-right: 1px solid rgba(255,255,255,0.06);
 }
+.pool-record-item:first-child { padding-left: 0; }
+.pool-record-item:last-child { border-right: none; }
+.pool-record-lbl { font-size: 0.7rem; color: #555; text-transform: uppercase; letter-spacing: 0.5px; }
+.pool-record-val { font-size: 0.95rem; font-weight: 700; color: #c4c4c4; }
+.pool-record-val.highlight { color: #00d26a; }
+.highlight-item .pool-record-lbl { color: #6a9a6a; }
 
-.fee-mini-item {
-    color: #c4c4c4;
+/* ─── Block Potential Card ─── */
+.pool-potential-layout {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    margin-top: 4px;
 }
-
-.fee-mini-item strong {
+.pool-potential-left {
+    flex: 0 0 auto;
+    padding-right: 32px;
+    border-right: 1px solid rgba(255,255,255,0.08);
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+.pool-potential-right {
+    flex: 1;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px 20px;
+    padding-left: 32px;
+}
+.pool-potential-time {
+    font-size: 2.8rem;
+    font-weight: 800;
     color: #ff931c;
+    letter-spacing: -1px;
+    line-height: 1;
+}
+.pool-potential-sublabel {
+    font-size: 0.72rem;
+    color: #555;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+}
+.pool-potential-stat {}
+.pool-potential-val { font-size: 1.15rem; font-weight: 700; color: #c4c4c4; }
+.pool-potential-lbl {
+    font-size: 0.72rem;
+    color: #555;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-top: 3px;
+}
+.pool-fee-strip {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+    padding-top: 10px;
+    border-top: 1px solid rgba(255,255,255,0.06);
+    font-size: 0.8rem;
+    color: #666;
+    margin-top: 4px;
+}
+.pool-fee-strip-label { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 1px; color: #444; }
+.pool-fee-chip { color: #888; }
+.pool-fee-chip strong { color: #ff931c; }
+.pool-fee-chip.dim strong { color: #c4c4c4; }
+.pool-fee-sep { color: #333; }
+
+/* ─── Share Performance / Pool Status: 4-col grid ─── */
+.pool-grid-4 { grid-template-columns: repeat(4, 1fr) !important; }
+.pool-section-grid { margin-top: 12px; }
+
+/* ─── Hashrate Bar Chart ─── */
+.pool-hr-bars { display: flex; flex-direction: column; gap: 9px; }
+.pool-hr-bar-row {
+    display: grid;
+    grid-template-columns: 28px 1fr 90px;
+    align-items: center;
+    gap: 12px;
+}
+.pool-hr-bar-label {
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: #555;
+    font-weight: 600;
+    text-align: right;
+}
+.pool-hr-bar-track {
+    height: 8px;
+    background: rgba(255,255,255,0.05);
+    border-radius: 4px;
+    overflow: hidden;
+}
+.pool-hr-bar-fill {
+    height: 100%;
+    background: rgba(255,147,28,0.4);
+    border-radius: 4px;
+    transition: width 0.6s ease;
+}
+.pool-hr-bar-fill.is-max { background: #ff931c; }
+.pool-hr-bar-value {
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: #888;
+    text-align: right;
+}
+.pool-hr-bar-value.is-max { color: #ff931c; }
+
+/* ─── Miner Pills ─── */
+.pool-miner-pills {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+.pool-miner-pill {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 999px;
+    padding: 6px 14px 6px 10px;
+    transition: border-color 0.2s;
+}
+.pool-miner-pill:hover { border-color: rgba(255,147,28,0.3); }
+.pool-miner-pill-name { font-size: 0.85rem; color: #c4c4c4; font-weight: 500; }
+.pool-miner-pill-count {
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: #ff931c;
+    background: rgba(255,147,28,0.12);
+    border-radius: 999px;
+    padding: 1px 8px;
+    min-width: 22px;
+    text-align: center;
 }
 
+/* ─── Responsive ─── */
 @media (max-width: 900px) {
-    .pool-cols-2 {
-        grid-template-columns: 1fr;
-    }
-
-    .hashrate-avg-grid {
-        grid-template-columns: repeat(4, 1fr) !important;
-    }
+    .pool-hero-body { flex-direction: column; }
+    .pool-hero-divider { width: 100%; height: 1px; margin: 20px 0; }
+    .pool-net-grid { grid-template-columns: repeat(2, 1fr); }
+    .pool-potential-layout { flex-direction: column; align-items: stretch; gap: 20px; }
+    .pool-potential-left { border-right: none; border-bottom: 1px solid rgba(255,255,255,0.08); padding-right: 0; padding-bottom: 20px; }
+    .pool-potential-right { padding-left: 0; }
+    .pool-grid-4 { grid-template-columns: repeat(2, 1fr) !important; }
 }
-
 @media (max-width: 600px) {
-    .compact-card {
-        padding: 14px 16px !important;
-    }
-
-    .hashrate-avg-grid {
-        grid-template-columns: repeat(3, 1fr) !important;
-    }
+    .compact-card { padding: 14px 16px !important; }
+    .pool-hero-number { font-size: 2.2rem; }
+    .pool-potential-time { font-size: 2rem; }
+    .pool-potential-right { grid-template-columns: repeat(3, 1fr); }
+    .pool-records-row { gap: 12px; flex-direction: column; }
+    .pool-record-item { border-right: none; padding: 0; }
+    .pool-hr-bar-row { grid-template-columns: 24px 1fr 80px; }
+    .pool-section-label::after { margin-right: 42px; }
+}
+@media (max-width: 480px) {
+    .pool-net-grid { grid-template-columns: 1fr !important; }
+    .pool-potential-right { grid-template-columns: repeat(2, 1fr); }
+    .pool-grid-4 { grid-template-columns: repeat(2, 1fr) !important; }
+    .pool-hr-bar-row { grid-template-columns: 20px 1fr 70px; }
 }
 </style>
 
@@ -320,7 +511,6 @@
         }
         <% } %>
 
-        // Load efficiency data for Block Potential card
         loadEfficiencyData();
         setInterval(loadEfficiencyData, 30000);
     });

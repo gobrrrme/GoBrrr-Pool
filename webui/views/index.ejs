@@ -3,35 +3,44 @@
     <div class="top-cards-row">
         <!-- Worker Lookup Card -->
         <div class="top-card lookup-card">
-            <h3>Stratum Host</h3>
-            <div class="stratum-info">
-                <div class="stratum-line">stratum: <span id="stratum-host">loading...</span>:<%= stratumPort %></div>
-                <div class="stratum-line">username: <span class="stratum-hint">BTC_address.workername</span></div>
-                <div class="stratum-line">password: <span class="stratum-hint">x</span> &nbsp;or&nbsp; <span class="stratum-hint">d=XXXX</span> to request a specific difficulty</div>
-                <div class="stratum-note">Worker names are visible on the Leaderboard</div>
+            <div class="pool-section-label">Stratum Connection</div>
+            <div class="stratum-connect-block">
+                <div class="stratum-row">
+                    <span class="stratum-key">host</span>
+                    <span class="stratum-val" id="stratum-host">loading...</span>
+                    <span class="stratum-port">port&nbsp;<%= stratumPort %></span>
+                </div>
+                <div class="stratum-row">
+                    <span class="stratum-key">user</span>
+                    <span class="stratum-val stratum-hint">BTC_address.workername</span>
+                </div>
+                <div class="stratum-row">
+                    <span class="stratum-key">pass</span>
+                    <span class="stratum-val"><span class="stratum-hint">x</span><span class="stratum-sep">or</span><span class="stratum-hint">d=XXXX</span><span class="stratum-desc">to set a fixed difficulty</span></span>
+                </div>
             </div>
-            <h3>Worker Lookup</h3>
-            <p>Enter your Bitcoin address to view stats</p>
+            <div class="stratum-note">Worker names are visible on the Leaderboard</div>
+            <div class="pool-section-label" style="margin-top: 20px;">Worker Lookup</div>
             <form class="lookup-form" id="address-form">
                 <div class="input-group">
-                    <input
-                        type="text"
-                        name="address"
-                        id="btc-address"
-                        placeholder="1..., 3..., or bc1..."
-                        required
-                    >
+                    <div class="lookup-field" id="lookup-field" onclick="document.getElementById('btc-address').focus()">
+                        <div class="lookup-chips" id="lookup-chips"></div>
+                        <input
+                            type="text"
+                            name="address"
+                            id="btc-address"
+                            placeholder="1..., 3..., or bc1..."
+                            autocomplete="off"
+                        >
+                    </div>
                     <button type="submit" class="btn btn-primary">Lookup</button>
                 </div>
             </form>
-            <div class="recent-searches-mini" id="recent-searches">
-                <div class="search-list" id="search-list"></div>
-            </div>
         </div>
 
         <!-- Pool Statistics Card -->
         <div class="top-card pool-card">
-            <h3>Pool Statistics</h3>
+            <div class="pool-section-label">Pool Statistics</div>
             <div class="pool-stats-grid">
                 <div class="pool-stat">
                     <div class="pool-stat-value" id="pool-hashrate">-</div>
@@ -55,6 +64,79 @@
 
     <!-- Sortable sections wrapper -->
     <div class="home-sections">
+        <!-- Node Info Card -->
+        <div class="home-section fee-rates" id="node-info-section">
+            <div class="pool-section-label">Bitcoin Node</div>
+            <div class="node-info-grid">
+                <div class="node-info-item">
+                    <span class="fee-label">Bitcoin Core</span>
+                    <span class="fee-value" id="node-version">—</span>
+                </div>
+                <div class="node-info-item">
+                    <span class="fee-label">Client</span>
+                    <span class="fee-value" id="node-subversion">—</span>
+                </div>
+                <div class="node-info-item">
+                    <span class="fee-label">Peers</span>
+                    <span class="fee-value" id="node-connections">—</span>
+                </div>
+                <div class="node-info-item">
+                    <span class="fee-label">Inbound</span>
+                    <span class="fee-value" id="node-in">—</span>
+                </div>
+                <div class="node-info-item">
+                    <span class="fee-label">Outbound</span>
+                    <span class="fee-value" id="node-out">—</span>
+                </div>
+                <div class="node-info-item">
+                    <span class="fee-label">Relay Fee</span>
+                    <span class="fee-value" id="node-relayfee">—</span>
+                </div>
+                <div class="node-info-item">
+                    <span class="fee-label">Block Weight</span>
+                    <span class="fee-value" id="node-blockweight">—</span>
+                </div>
+                <div class="node-info-item">
+                    <span class="fee-label">Block TXs</span>
+                    <span class="fee-value" id="node-blocktx">—</span>
+                </div>
+                <div class="node-info-item">
+                    <span class="fee-label">Mempool TXs</span>
+                    <span class="fee-value" id="node-pooledtx">—</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Leaderboard -->
+        <div class="home-section leaderboard-section">
+            <div class="pool-section-label">Leaderboard — Best Difficulties</div>
+            <div class="leaderboard-table-wrapper">
+                <table class="leaderboard-table">
+                    <thead>
+                        <tr>
+                            <th>Rank</th>
+                            <th>Worker</th>
+                            <th>Miner</th>
+                            <th>Hashrate</th>
+                            <th>Best Diff</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="leaderboard-body">
+                        <tr><td colspan="6" class="loading">Loading leaderboard...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Pool Hashrate Chart -->
+        <div class="home-section hashrate-section">
+            <div class="pool-section-label">Pool Hashrate</div>
+            <div class="chart-container" id="home-chart-container">
+                <canvas id="home-hashrate-chart"></canvas>
+            </div>
+        </div>
+
         <!-- Bitcoin Network Hero Card -->
         <div class="home-section hero-card" id="bitcoin-hero">
         <div class="hero-header">
@@ -118,7 +200,7 @@
             </div>
         </div>
         <div class="recent-blocks">
-            <h4>Recent Blocks</h4>
+            <div class="pool-section-label">Recent Blocks</div>
             <div class="blocks-list" id="recent-blocks-list">
                 <div class="block-item loading">Loading recent blocks...</div>
             </div>
@@ -127,7 +209,7 @@
 
         <!-- Fee Rates & Block Reward -->
         <div class="home-section fee-rates">
-            <h3>Current Block Reward Potential</h3>
+            <div class="pool-section-label">Block Reward Potential</div>
             <div class="fee-grid">
                 <div class="fee-item highlight">
                     <span class="fee-label">Block Subsidy</span>
@@ -142,7 +224,7 @@
                     <span class="fee-value" id="total-reward">-</span>
                 </div>
             </div>
-            <h4 style="margin-top: 20px; margin-bottom: 10px; text-align: center;">Fee Rates (sat/vB)</h4>
+            <div class="pool-section-label" style="margin-top: 20px;">Fee Rates (sat/vB)</div>
             <div class="fee-grid">
                 <div class="fee-item">
                     <span class="fee-label">Low</span>
@@ -159,36 +241,6 @@
             </div>
             <div style="text-align: center; margin-top: 15px;">
                 <a href="/pool" class="btn btn-primary" style="display: inline-block;">View Pool Stats</a>
-            </div>
-        </div>
-
-        <!-- Pool Hashrate Chart -->
-        <div class="home-section hashrate-section">
-            <h3>Pool Hashrate</h3>
-            <div class="chart-container" id="home-chart-container">
-                <canvas id="home-hashrate-chart"></canvas>
-            </div>
-        </div>
-
-        <!-- Leaderboard -->
-        <div class="home-section leaderboard-section">
-            <h3>Leaderboard - Best Difficulties</h3>
-            <div class="leaderboard-table-wrapper">
-                <table class="leaderboard-table">
-                    <thead>
-                        <tr>
-                            <th>Rank</th>
-                            <th>Worker</th>
-                            <th>Miner</th>
-                            <th>Hashrate</th>
-                            <th>Best Diff</th>
-                            <th>Status</th>
-                        </tr>
-                    </thead>
-                    <tbody id="leaderboard-body">
-                        <tr><td colspan="6" class="loading">Loading leaderboard...</td></tr>
-                    </tbody>
-                </table>
             </div>
         </div>
     </div>
@@ -210,6 +262,7 @@
         loadBlockRewardEstimate();
         loadHomeHashrateChart();
         loadLeaderboard();
+        loadNodeInfo();
 
         // Auto-refresh every 30 seconds
         setInterval(() => {
@@ -218,6 +271,7 @@
             loadBlockRewardEstimate();
             loadHomeHashrateChart();
             loadLeaderboard();
+            loadNodeInfo();
         }, 30000);
     });
 
@@ -290,13 +344,34 @@
                 // Update existing chart data instead of recreating
                 if (homeHashrateChart) {
                     homeHashrateChart.data.datasets[0].data = chartData.map(d => d.value);
-                    homeHashrateChart.update('none'); // 'none' disables animation for smooth update
+                    homeHashrateChart.update('none');
                 } else if (typeof initHashrateChart === 'function') {
                     homeHashrateChart = initHashrateChart(chartData, 'home-hashrate-chart');
                 }
             }
         } catch (err) {
             console.error('Failed to load hashrate chart:', err);
+        }
+    }
+
+    async function loadNodeInfo() {
+        try {
+            const res = await secureFetch('/api/nodeinfo');
+            const data = await res.json();
+            if (!data.success || !data.data) return;
+            const n = data.data;
+            updateElement('node-version', n.version);
+            updateElement('node-subversion', n.subversion);
+            updateElement('node-connections', n.connections);
+            updateElement('node-in', n.connections_in);
+            updateElement('node-out', n.connections_out);
+            const relaySatVb = (n.relayfee * 1e8 / 1000);
+            updateElement('node-relayfee', (relaySatVb < 1 ? relaySatVb.toFixed(3) : relaySatVb.toFixed(1)) + ' sat/vB');
+            updateElement('node-blockweight', n.currentblockweight ? n.currentblockweight.toLocaleString() + ' WU' : '—');
+            updateElement('node-blocktx', n.currentblocktx ? n.currentblocktx.toLocaleString() : '—');
+            updateElement('node-pooledtx', n.pooledtx ? n.pooledtx.toLocaleString() : '—');
+        } catch (err) {
+            console.error('Failed to load node info:', err);
         }
     }
 
@@ -328,3 +403,140 @@
         }
     }
 </script>
+
+<style>
+/* ─── Pool-section-label (matches pool stats page) ─── */
+.pool-section-label {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    color: #ff931c;
+    font-weight: 700;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+.pool-section-label::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: rgba(255,147,28,0.25);
+    margin-right: 52px;
+}
+/* Inside top-cards (no drag handle) the line can go full width */
+.top-card .pool-section-label::after {
+    margin-right: 0;
+}
+
+/* ─── Pool card: hashrate hero + 3-col bottom row ─── */
+.pool-card {
+    display: flex;
+    flex-direction: column;
+}
+.pool-card .pool-stats-grid {
+    flex: 1;
+    grid-template-columns: repeat(3, 1fr);
+    align-content: stretch;
+}
+.pool-card .pool-stat {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+.pool-card .pool-stat:first-child {
+    grid-column: 1 / -1;
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+    padding-bottom: 18px;
+    margin-bottom: 2px;
+}
+.pool-card #pool-hashrate {
+    font-size: 2.6rem;
+    font-weight: 800;
+    letter-spacing: -1px;
+    line-height: 1;
+    color: #ff931c;
+}
+.pool-card .pool-stat:first-child .pool-stat-label {
+    font-size: 0.72rem;
+    letter-spacing: 1.5px;
+    color: #888;
+    margin-top: 5px;
+}
+
+/* ─── Node info grid (3×3) ─── */
+.node-info-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    margin-top: 4px;
+}
+.node-info-item {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+}
+@media (max-width: 600px) {
+    .node-info-grid { grid-template-columns: repeat(2, 1fr); }
+}
+
+/* ─── Stratum connection block ─── */
+.stratum-connect-block {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-bottom: 10px;
+    background: rgba(255,255,255,0.03);
+    border-radius: 12px;
+    padding: 12px 14px;
+}
+.stratum-row {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    font-size: 0.88rem;
+}
+.stratum-key {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: #555;
+    font-weight: 600;
+    min-width: 36px;
+    flex-shrink: 0;
+}
+.stratum-val {
+    color: #c4c4c4;
+    font-family: 'Courier New', monospace;
+    font-size: 0.85rem;
+    word-break: break-all;
+}
+.stratum-hint {
+    color: #888;
+}
+.stratum-sep {
+    color: #444;
+    font-family: inherit;
+    font-size: 0.75rem;
+    margin: 0 6px;
+}
+.stratum-note {
+    font-size: 0.75rem;
+    color: #444;
+    margin-bottom: 0;
+    padding: 0 2px;
+}
+.stratum-port {
+    margin-left: 14px;
+    color: #c4c4c4;
+    font-family: 'Courier New', monospace;
+    font-size: 0.85rem;
+    flex-shrink: 0;
+}
+.stratum-desc {
+    color: #444;
+    font-family: inherit;
+    font-size: 0.75rem;
+    margin-left: 6px;
+}
+</style>

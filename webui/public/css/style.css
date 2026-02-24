@@ -75,7 +75,7 @@ body {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 30px;
+    margin-bottom: 16px;
     position: relative;
     overflow: hidden;
     transition: all 0.3s ease;
@@ -146,6 +146,9 @@ body {
     position: absolute;
     left: 50%;
     transform: translateX(-50%);
+    display: flex;
+    align-items: center;
+    gap: 4px;
 }
 
 /* Navbar stat display */
@@ -158,6 +161,19 @@ body {
     font-weight: 500;
 }
 
+.nav-stat--stacked {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1px;
+}
+
+.nav-sep {
+    color: rgba(255, 255, 255, 0.12);
+    font-size: 1.4rem;
+    line-height: 1;
+    padding: 0 2px;
+}
+
 .nav-stat-value {
     color: #ff931c;
     font-weight: 700;
@@ -167,11 +183,19 @@ body {
     font-size: 0.9rem;
 }
 
+.nav-stat-sub {
+    font-size: 0.75rem;
+    color: #666;
+    white-space: nowrap;
+}
+
+.nav-label-short { display: none; }
+
 /* Page Title */
 .page-title {
     color: #c4c4c4;
     font-size: 2rem;
-    margin-bottom: 20px;
+    margin-bottom: 16px;
     text-align: center;
     font-weight: 600;
 }
@@ -181,7 +205,7 @@ body {
     display: flex;
     justify-content: center;
     gap: 15px;
-    margin-bottom: 30px;
+    margin-bottom: 16px;
 }
 
 .tab-btn {
@@ -878,7 +902,7 @@ body {
     display: flex;
     justify-content: center;
     gap: 15px;
-    margin-top: 30px;
+    margin-top: 16px;
 }
 
 /* Address Display */
@@ -1307,8 +1331,8 @@ body {
 .top-cards-row {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 25px;
-    margin-bottom: 30px;
+    gap: 16px;
+    margin-bottom: 16px;
 }
 
 .top-card {
@@ -1377,7 +1401,7 @@ body {
     flex: 1;
     padding: 12px 16px;
     background: rgba(255, 255, 255, 0.1);
-    border: 2px solid #000000;
+    border: 2px solid #000;
     border-radius: 8px;
     color: #ffffff;
     font-size: 0.95rem;
@@ -1394,67 +1418,84 @@ body {
     color: #666;
 }
 
-.recent-searches-mini {
-    margin-top: 10px;
-}
-
-.recent-searches-mini .search-list {
+/* Lookup field: styled container holding chips + input inline */
+.lookup-field {
+    flex: 1;
     display: flex;
     flex-wrap: wrap;
-    gap: 8px;
-    justify-content: center;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 14px;
+    background: rgba(255, 255, 255, 0.1);
+    border: 2px solid #000;
+    border-radius: 38px;
+    cursor: text;
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+    min-height: 44px;
 }
 
-.recent-searches-mini .search-item {
-    display: inline-block;
-    padding: 6px 12px;
-    background: rgba(255, 255, 255, 0.05);
-    border: 1px solid transparent;
-    border-radius: 20px;
-    text-decoration: none;
-    color: #888;
-    font-size: 0.8rem;
-    font-family: monospace;
-    transition: all 0.3s ease;
-}
-
-.recent-searches-mini .search-item:hover {
-    background: rgba(255, 147, 28, 0.1);
+.lookup-field:focus-within {
     border-color: #ff931c;
+    box-shadow: 0 0 0 2px rgba(255, 147, 28, 0.2);
+}
+
+.lookup-field input {
+    flex: 1;
+    min-width: 80px;
+    border: none;
+    background: transparent;
+    outline: none;
+    color: #c4c4c4;
+    font-size: 0.95rem;
+    padding: 0;
+}
+
+.lookup-field input::placeholder {
+    color: #666;
+}
+
+.lookup-chips {
+    display: contents;
+}
+
+/* Individual address chip */
+.lookup-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 4px 3px 10px;
+    background: rgba(255, 147, 28, 0.08);
+    border: 1px solid rgba(255, 147, 28, 0.2);
+    border-radius: 20px;
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
+.lookup-chip-addr {
+    font-family: monospace;
+    font-size: 0.78rem;
+    color: #c4c4c4;
+    text-decoration: none;
+    transition: color 0.15s;
+}
+
+.lookup-chip-addr:hover {
     color: #ff931c;
 }
 
-.recent-searches-mini .search-item-wrapper {
-    display: flex;
-    align-items: center;
-    width: 100%;
-}
-
-.recent-searches-mini .search-item-wrapper .search-item {
-    flex: 1;
-}
-
-.recent-searches-mini .search-item-delete {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
-    width: 20px;
-    height: 20px;
-    margin-left: 8px;
-    padding: 0;
-    background: rgba(255, 255, 255, 0.05);
-    border: 1px solid transparent;
-    border-radius: 50%;
-    color: #666;
-    font-size: 14px;
+.lookup-chip-del {
+    background: none;
+    border: none;
+    color: #555;
     cursor: pointer;
-    transition: all 0.3s ease;
+    font-size: 13px;
+    line-height: 1;
+    padding: 0 4px;
+    border-radius: 50%;
+    transition: color 0.15s;
 }
 
-.recent-searches-mini .search-item-delete:hover {
-    background: rgba(255, 80, 80, 0.2);
-    border-color: #ff5050;
+.lookup-chip-del:hover {
     color: #ff5050;
 }
 
@@ -1516,7 +1557,14 @@ body {
         position: static;
         transform: none;
         order: 2;
+        flex-wrap: wrap;
+        justify-content: center;
     }
+
+    .nav-label-full { display: none; }
+    .nav-label-short { display: inline; }
+
+    .nav-sep { display: none; }
 
     .nav-stat {
         padding: 5px 10px;
@@ -1524,6 +1572,12 @@ body {
 
     .nav-stat-label {
         font-size: 0.8rem;
+    }
+
+    .workers-table th,
+    .workers-table td {
+        padding: 10px 12px;
+        font-size: 0.85rem;
     }
 
     .nav-links {
@@ -1710,6 +1764,15 @@ body {
 
     .nav-stat-value {
         font-size: 0.9rem;
+    }
+
+    /* Hide diff adj sub-line on small phones — too little space */
+    .nav-stat-sub { display: none; }
+
+    .workers-table th,
+    .workers-table td {
+        padding: 8px 8px;
+        font-size: 0.8rem;
     }
 
     .stats-grid {
@@ -1949,7 +2012,7 @@ body {
 .home-sections {
     display: flex;
     flex-direction: column;
-    gap: 30px;
+    gap: 16px;
 }
 
 .home-section {
@@ -1961,6 +2024,7 @@ body {
     position: relative;
     overflow: hidden;
     transition: all 0.3s ease;
+    margin-bottom: 0;
 }
 
 .home-section::before {
@@ -2071,11 +2135,20 @@ body {
     padding: 12px 10px;
     text-align: left;
     font-size: 0.85rem;
-    background: #c4c4c4;
-    color: #212121;
+    background: #212121;
+    color: #ff931c;
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.5px;
+    position: relative;
+}
+
+.leaderboard-table th::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: rgba(255, 147, 28, 0.05);
+    pointer-events: none;
 }
 
 

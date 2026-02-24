@@ -508,6 +508,60 @@ function formatSmallBTC(btc) {
     return '< 0.00000001 sats';
 }
 
+// Bitcoin Core RPC helper
+const BITCOIN_RPC_URL = `http://${process.env.BITCOIN_RPC_HOST || '127.0.0.1'}:${process.env.BITCOIN_RPC_PORT || 8332}`;
+const BITCOIN_RPC_AUTH = Buffer.from(`${process.env.BITCOIN_RPC_USER || ''}:${process.env.BITCOIN_RPC_PASS || ''}`).toString('base64');
+let nodeinfoCache = { data: null, timestamp: 0 };
+const NODEINFO_CACHE_TTL = 60000; // 1 minute
+
+async function rpcCall(method, params = []) {
+    const response = await fetch(BITCOIN_RPC_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Basic ${BITCOIN_RPC_AUTH}` },
+        body: JSON.stringify({ method, params, id: 1 })
+    });
+    if (!response.ok) throw new Error(`RPC HTTP ${response.status}`);
+    const json = await response.json();
+    if (json.error) throw new Error(json.error.message);
+    return json.result;
+}
+
+router.get('/nodeinfo', async (req, res) => {
+    try {
+        if (nodeinfoCache.data && Date.now() - nodeinfoCache.timestamp < NODEINFO_CACHE_TTL) {
+            return res.json({ success: true, data: nodeinfoCache.data });
+        }
+
+        const [netinfo, mininginfo] = await Promise.all([
+            rpcCall('getnetworkinfo'),
+            rpcCall('getmininginfo')
+        ]);
+
+        // Format version: 290200 → "29.2.0"
+        const v = netinfo.version;
+        const versionStr = `${Math.floor(v / 10000)}.${Math.floor((v % 10000) / 100)}.${v % 100}`;
+
+        const data = {
+            version: versionStr,
+            subversion: netinfo.subversion.replace(/\//g, '').replace('Satoshi:', ''),
+            connections: netinfo.connections,
+            connections_in: netinfo.connections_in,
+            connections_out: netinfo.connections_out,
+            networkactive: netinfo.networkactive,
+            relayfee: netinfo.relayfee,
+            currentblockweight: mininginfo.currentblockweight,
+            currentblocktx: mininginfo.currentblocktx,
+            pooledtx: mininginfo.pooledtx
+        };
+
+        nodeinfoCache = { data, timestamp: Date.now() };
+        res.json({ success: true, data });
+    } catch (err) {
+        console.error('nodeinfo error:', err.message);
+        res.json({ success: false, error: err.message });
+    }
+});
+
 // Helper function to fetch JSON
 async function fetchJSON(url) {
     try {

@@ -76,7 +76,7 @@
         <!-- Connected Clients (with miner detection) -->
         <div class="stats-section">
             <h2>Connected Miners</h2>
-            <div class="workers-table">
+            <div class="workers-table live-workers">
                 <table>
                     <thead>
                         <tr>
@@ -109,7 +109,7 @@
         <!-- Fallback: Workers List (without miner type) -->
         <div class="stats-section">
             <h2>Workers</h2>
-            <div class="workers-table">
+            <div class="workers-table history-workers">
                 <table>
                     <thead>
                         <tr>
@@ -204,3 +204,22 @@
     });
     <% } %>
 </script>
+
+<style>
+/* Workers table: hide lower-priority columns on small screens */
+@media (max-width: 768px) {
+    /* Live table: hide Miner Type (col 3) */
+    .live-workers table th:nth-child(3),
+    .live-workers table td:nth-child(3) { display: none; }
+    /* History table: hide Shares (col 3) and Last Active (col 5) */
+    .history-workers table th:nth-child(3),
+    .history-workers table td:nth-child(3),
+    .history-workers table th:nth-child(5),
+    .history-workers table td:nth-child(5) { display: none; }
+}
+@media (max-width: 480px) {
+    /* Live table: also hide Difficulty (col 4) */
+    .live-workers table th:nth-child(4),
+    .live-workers table td:nth-child(4) { display: none; }
+}
+</style>
