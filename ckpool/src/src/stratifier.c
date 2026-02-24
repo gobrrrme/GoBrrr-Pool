@@ -248,7 +248,6 @@ struct stratum_instance {
 	double dsps10080;
 	tv_t ldc; /* Last diff change */
 	int ssdc; /* Shares since diff change */
-	int vardiff_stage; /* Progressive vardiff: 0=fast, 1=medium, 2+=normal */
 	tv_t first_share;
 	tv_t last_share;
 	tv_t last_decay;
@@ -5777,30 +5776,10 @@ static void add_submit(ckpool_t *ckp, stratum_instance_t *client, const double d
 	bias = time_bias(bdiff, 300);
 	tdiff = sane_tdiff(&now_t, &client->ldc);
 
-	/* Progressive vardiff: start with fast checks, ramp up to normal.
-	 * Stage 0: 21 shares / 60s  (fast initial convergence)
-	 * Stage 1: 42 shares / 120s (medium)
-	 * Stage 2+: 72 shares / 240s (normal) */
-	{
-		int check_shares, check_time;
-
-		switch (client->vardiff_stage) {
-		case 0:
-			check_shares = 21;
-			check_time = 60;
-			break;
-		case 1:
-			check_shares = 42;
-			check_time = 120;
-			break;
-		default:
-			check_shares = 72;
-			check_time = 240;
-			break;
-		}
-		if (client->ssdc < check_shares && tdiff < check_time)
-			return;
-	}
+	/* Check the difficulty every 240 seconds or as many shares as we
+	 * should have had in that time, whichever comes first. */
+	if (client->ssdc < 72 && tdiff < 240)
+		return;
 
 	if (diff != client->diff) {
 		client->ssdc = 0;
@@ -5808,18 +5787,11 @@ static void add_submit(ckpool_t *ckp, stratum_instance_t *client, const double d
 	}
 
 	/* Diff rate ratio */
-	if (client->vardiff_stage == 0 && tdiff > 0) {
-		/* Stage 0: use raw share rate for accurate first adjustment.
-		 * The 5-min EMA hasn't converged yet, so calculate directly
-		 * from actual shares submitted at the current diff. */
-		dsps = (double)client->ssdc * (double)client->diff / tdiff;
-	} else {
-		dsps = client->dsps5 / bias;
-	}
+	dsps = client->dsps5 / bias;
 	drr = dsps / (double)client->diff;
 
-	/* Optimal rate product is ~0.048 (1 share per ~21s), allow hysteresis. */
-	if (drr > 0.025 && drr < 0.07)
+	/* Optimal rate product is 0.3, allow some hysteresis. */
+	if (drr > 0.15 && drr < 0.4)
 		return;
 
 	/* Client suggest diff overrides worker mindiff */
@@ -5829,11 +5801,11 @@ static void add_submit(ckpool_t *ckp, stratum_instance_t *client, const double d
 		mindiff = worker->mindiff;
 	/* Allow slightly lower diffs when users choose their own mindiff */
 	if (mindiff) {
-		if (drr < 0.08)
+		if (drr < 0.5)
 			return;
-		optimal = lround(dsps * 15);
+		optimal = lround(dsps * 2.4);
 	} else
-		optimal = lround(dsps * 21);
+		optimal = lround(dsps * 3.33);
 
 	/* Clamp to mindiff ~ network_diff */
 
@@ -5866,15 +5838,13 @@ static void add_submit(ckpool_t *ckp, stratum_instance_t *client, const double d
 
 	client->ssdc = 0;
 
-	LOGNOTICE("Client %s dsps %.2f drr %.2f adjust diff from %"PRId64" to %"PRId64" (stage %d)",
-		  client->identity, dsps, drr, client->diff, optimal, client->vardiff_stage);
+	LOGINFO("Client %s biased dsps %.2f dsps %.2f drr %.2f adjust diff from %"PRId64" to: %"PRId64" ",
+		client->identity, dsps, client->dsps5, drr, client->diff, optimal);
 
 	copy_tv(&client->ldc, &now_t);
 	client->diff_change_job_id = next_blockid;
 	client->old_diff = client->diff;
 	client->diff = optimal;
-	if (client->vardiff_stage < 2)
-		client->vardiff_stage++;
 	stratum_send_diff(sdata, client);
 }
 
