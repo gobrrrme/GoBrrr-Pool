@@ -18,7 +18,7 @@
             <h2>Hashrate</h2>
             <div class="stats-grid">
                 <div class="stat-card highlight">
-                    <div class="stat-label">Hashrate (5m avg)</div>
+                    <div class="stat-label">Current (1m avg)</div>
                     <div class="stat-value"><%= formatHashrate(user.hashrate.current) %></div>
                 </div>
                 <div class="stat-card">
@@ -94,7 +94,7 @@
                         %>
                         <tr>
                             <td><a href="/stats/<%= address %>/<%= encodeURIComponent(workerSuffix) %>" class="worker-link"><%= workerSuffix %></a></td>
-                            <td><%= formatHashrate((c.dsps5 || 0) * 4294967296) %></td>
+                            <td><%= formatHashrate((c.dsps1 || 0) * 4294967296) %></td>
                             <td class="miner-type" title="<%= c.useragent %>"><%= c.miner.name %></td>
                             <td><%= formatDifficulty(c.diff) %></td>
                             <td><%= formatDifficulty(c.bestdiff) %></td>

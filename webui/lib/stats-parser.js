@@ -123,8 +123,8 @@ function parsePoolStats(poolstats, stratifier, connector) {
         pool.hashrate1d = (poolstats.dsps1440 || 0) * NONCES_PER_SHARE;
         pool.hashrate7d = (poolstats.dsps10080 || 0) * NONCES_PER_SHARE;
 
-        // Use 5 minute hashrate as main display value (more stable than 1m)
-        pool.hashrate = pool.hashrate5m;
+        // Use 1 minute hashrate as main display value (responsive)
+        pool.hashrate = pool.hashrate1m;
 
         // Best difficulty for the pool
         pool.bestDiff = poolstats.bestdiff || 0;
@@ -174,7 +174,7 @@ function parseUserStats(raw) {
         address: raw.user || raw.username || 'Unknown',
         id: raw.id || 0,
         hashrate: {
-            current: hashrate5m,
+            current: hashrate1m,
             avg1m: hashrate1m,
             avg15m: 0, // Not provided by ckpool
             avg1h: hashrate1h,

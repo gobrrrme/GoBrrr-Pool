@@ -75,9 +75,8 @@ router.get('/stats/:address', async (req, res) => {
             // more stable than per-connection ucinfo values)
             clients.forEach((client, index) => {
                 const workerStats = workerStatsResults[index];
-                if (workerStats && !workerStats.error) {
-                    if (workerStats.dsps1) client.dsps1 = workerStats.dsps1;
-                    if (workerStats.dsps5) client.dsps5 = workerStats.dsps5;
+                if (workerStats && !workerStats.error && workerStats.dsps1) {
+                    client.dsps1 = workerStats.dsps1;
                 }
             });
         }
