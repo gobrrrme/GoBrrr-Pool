@@ -556,17 +556,27 @@
         return hs.toFixed(0) + ' H/s';
     }
 
-    function formatPct(p) {
-        if (p < 0.0001)  return p.toExponential(2) + '%';
-        if (p < 0.01)    return p.toFixed(6) + '%';
-        if (p < 1)       return p.toFixed(4) + '%';
-        return p.toFixed(2) + '%';
+    // Human-readable probability: "1 in 1.2M" for tiny chances, "3.4%" for reasonable ones
+    function formatProb(fraction) {
+        if (fraction <= 0) return '0%';
+        if (fraction >= 0.5)   return (fraction * 100).toFixed(1) + '%';
+        if (fraction >= 0.01)  return (fraction * 100).toFixed(2) + '%';
+        if (fraction >= 0.001) return (fraction * 100).toFixed(3) + '%';
+        const oneIn = 1 / fraction;
+        if (oneIn >= 1e9) return '1 in ' + (oneIn / 1e9).toFixed(2) + 'B';
+        if (oneIn >= 1e6) return '1 in ' + (oneIn / 1e6).toFixed(2) + 'M';
+        if (oneIn >= 1e3) return '1 in ' + (oneIn / 1e3).toFixed(1) + 'K';
+        return '1 in ' + Math.round(oneIn).toLocaleString();
     }
 
+    // Human-readable BTC: satoshis for tiny amounts
     function formatBtc(btc) {
-        if (btc < 0.000001) return btc.toExponential(4) + ' BTC';
-        if (btc < 0.001)    return btc.toFixed(8) + ' BTC';
-        return btc.toFixed(6) + ' BTC';
+        if (btc <= 0) return '0 sats';
+        if (btc >= 0.001) return btc.toFixed(6) + ' BTC';
+        if (btc >= 0.00000001) return btc.toFixed(8) + ' BTC';
+        const sats = Math.round(btc * 1e8);
+        if (sats >= 1) return sats.toLocaleString() + ' sats';
+        return '< 1 sat';
     }
 
     function formatDuration(days) {
@@ -611,21 +621,21 @@
         const p365 = 1 - Math.pow(1 - shareOfNetwork, 144 * 365);
 
         // ── Solo results ───────────────────────────────────────────────────────
-        setText('solo-share',  formatPct(shareOfNetwork * 100));
+        setText('solo-share',  formatProb(shareOfNetwork));
         setText('solo-expected-time', '~' + formatDuration(expectedDays));
         setText('solo-block-value', blockReward.toFixed(4) + ' BTC');
 
-        setText('solo-prob-day',   formatPct(p1 * 100));
-        setText('solo-prob-week',  formatPct(p7 * 100));
-        setText('solo-prob-month', formatPct(p30 * 100));
-        setText('solo-prob-year',  formatPct(p365 * 100));
+        setText('solo-prob-day',   formatProb(p1));
+        setText('solo-prob-week',  formatProb(p7));
+        setText('solo-prob-month', formatProb(p30));
+        setText('solo-prob-year',  formatProb(p365));
 
         // Probability bar (monthly, capped at 100%, min visual 0.5%)
         const barPct = Math.min(100, p30 * 100);
         const barEl = document.getElementById('solo-prob-bar');
         if (barEl) barEl.style.width = Math.max(barPct > 0 ? 0.5 : 0, barPct) + '%';
         const barLbl = document.getElementById('solo-prob-bar-label');
-        if (barLbl) barLbl.textContent = formatPct(p30 * 100) + ' chance this month';
+        if (barLbl) barLbl.textContent = formatProb(p30) + ' chance this month';
 
         // ── Shared results ─────────────────────────────────────────────────────
         const btcPerMonth = btcPerDay * 30;
