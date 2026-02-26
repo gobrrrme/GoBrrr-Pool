@@ -1,7 +1,12 @@
 const express = require('express');
 const router = express.Router();
 const ckpool = require('../lib/ckpool-client');
+const { CKPoolClient } = require('../lib/ckpool-client');
 const { parseUserStats, parsePoolStats, aggregateMinerTypes, parseMinerType, formatHashrate, formatDifficulty } = require('../lib/stats-parser');
+
+// War Room: second ckpool instance for Knots node (only active if env var set)
+const knotsSocketDir = process.env.CKPOOL_KNOTS_SOCKET_DIR;
+const knotsClient = knotsSocketDir ? new CKPoolClient(knotsSocketDir) : null;
 const minerCache = require('../lib/miner-cache');
 
 // Mempool API base URL - can be local (Umbrel) or public
@@ -582,5 +587,57 @@ function timeAgo(timestamp) {
     if (seconds < 86400) return `${Math.floor(seconds / 3600)}h ago`;
     return `${Math.floor(seconds / 86400)}d ago`;
 }
+
+// ── War Room: live hashrate battle Core vs Knots ──────────────────────────────
+let warroomCache = { data: null, timestamp: 0 };
+const WARROOM_CACHE_TTL = 5000; // 5 seconds
+
+router.get('/warroom', async (req, res) => {
+    if (!knotsClient) {
+        return res.status(503).json({ success: false, error: 'War Room not configured (CKPOOL_KNOTS_SOCKET_DIR not set)' });
+    }
+
+    if (warroomCache.data && Date.now() - warroomCache.timestamp < WARROOM_CACHE_TTL) {
+        return res.json({ success: true, data: warroomCache.data, cached: true });
+    }
+
+    const [coreResult, knotsResult] = await Promise.allSettled([
+        ckpool.getPoolStats(),
+        knotsClient.getPoolStats()
+    ]);
+
+    function parseSide(result, label) {
+        if (result.status === 'rejected') return { label, online: false, error: result.reason?.message };
+        const raw = result.value;
+        const parsed = parsePoolStats(raw.poolstats, raw.stratifier, raw.connector);
+        const NONCES = 4294967296;
+        return {
+            label,
+            online: true,
+            hashrate:  parsed.hashrate  || 0,
+            hashrate1m: parsed.hashrate1m || 0,
+            hashrate5m: parsed.hashrate5m || 0,
+            workers:   parsed.workers   || 0,
+            users:     parsed.users     || 0,
+            blocksFound: parsed.blocksFound || 0,
+            bestDiff:  parsed.bestDiff  || 0,
+            sps1:      parsed.sps1      || 0,
+        };
+    }
+
+    const data = {
+        core:  parseSide(coreResult,  'Bitcoin Core'),
+        knots: parseSide(knotsResult, 'Bitcoin Knots'),
+        timestamp: Date.now()
+    };
+
+    // Compute hashrate split percentage (0-100, Core share)
+    const total = data.core.hashrate + data.knots.hashrate;
+    data.corePct  = total > 0 ? (data.core.hashrate  / total) * 100 : 50;
+    data.knotsPct = total > 0 ? (data.knots.hashrate / total) * 100 : 50;
+
+    warroomCache = { data, timestamp: Date.now() };
+    res.json({ success: true, data });
+});
 
 module.exports = router;

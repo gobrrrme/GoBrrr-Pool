@@ -2,15 +2,15 @@ const net = require('net');
 const fs = require('fs');
 const path = require('path');
 
-const SOCKET_DIR = process.env.CKPOOL_SOCKET_DIR || '/tmp/ckpool';
 const SOCKET_TIMEOUT = 5000;
 
 class CKPoolClient {
-    constructor() {
+    constructor(socketDir) {
+        const dir = socketDir || process.env.CKPOOL_SOCKET_DIR || '/tmp/ckpool';
         // Listener socket for stratifierstats/connectorstats
-        this.listenerSocket = path.join(SOCKET_DIR, 'listener');
+        this.listenerSocket = path.join(dir, 'listener');
         // Stratifier socket for API commands (poolstats, users, getuser, etc.)
-        this.stratifierSocket = path.join(SOCKET_DIR, 'stratifier');
+        this.stratifierSocket = path.join(dir, 'stratifier');
         console.log(`CKPool client initialized with sockets:`);
         console.log(`  - listener: ${this.listenerSocket}`);
         console.log(`  - stratifier: ${this.stratifierSocket}`);
@@ -239,3 +239,4 @@ class CKPoolClient {
 }
 
 module.exports = new CKPoolClient();
+module.exports.CKPoolClient = CKPoolClient;

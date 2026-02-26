@@ -8,6 +8,7 @@ logs/
 # Environment
 .env
 .env.local
+.env.knots
 
 # Build artifacts
 dist/
