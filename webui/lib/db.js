@@ -6,7 +6,6 @@ const Database = require('better-sqlite3');
 const path     = require('path');
 const crypto   = require('crypto');
 const fs       = require('fs');
-const xp       = require('./xp');
 
 const DB_PATH = path.join(__dirname, '../data/warroom.db');
 const ALGO    = 'aes-256-gcm';
@@ -350,12 +349,19 @@ function addFundsToCampaign(id, sats) {
     }
 }
 
-// ── Level computation (mirrors xp.js) ────────────────────────────────────────
+// ── Level computation ─────────────────────────────────────────────────────────
+
+const LEVELS = [
+    { level: 1, threshold: 0 },     { level: 2, threshold: 100 },
+    { level: 3, threshold: 300 },   { level: 4, threshold: 600 },
+    { level: 5, threshold: 1000 },  { level: 6, threshold: 1500 },
+    { level: 7, threshold: 2100 },  { level: 8, threshold: 2800 },
+    { level: 9, threshold: 3600 },  { level: 10, threshold: 4500 },
+];
 
 function computeLevel(xpVal) {
-    const levels = xp.LEVELS;
     let level = 1;
-    for (const l of levels) {
+    for (const l of LEVELS) {
         if (xpVal >= l.threshold) level = l.level;
         else break;
     }
