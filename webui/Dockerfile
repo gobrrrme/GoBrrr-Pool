@@ -8,6 +8,9 @@ WORKDIR /app
 # Copy package files
 COPY package*.json ./
 
+# Build tools required for better-sqlite3 native module compilation
+RUN apk add --no-cache python3 make g++
+
 # Install dependencies
 RUN npm install --production
 
