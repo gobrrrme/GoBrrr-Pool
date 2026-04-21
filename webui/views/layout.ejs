@@ -60,7 +60,6 @@
             <a href="/" class="nav-link">Home</a>
             <a href="/pool" class="nav-link">Pool Stats</a>
             <a href="/calculator" class="nav-link">Math</a>
-            <a href="/warroom" class="nav-link nav-link-warroom">⚔ War Room</a>
         </div>
     </nav>
 
@@ -158,7 +157,7 @@
             // Highlight active nav link
             (function() {
                 const path = window.location.pathname;
-                const map = { '/': 'a[href="/"]', '/pool': 'a[href="/pool"]', '/calculator': 'a[href="/calculator"]', '/warroom': 'a[href="/warroom"]' };
+                const map = { '/': 'a[href="/"]', '/pool': 'a[href="/pool"]', '/calculator': 'a[href="/calculator"]' };
                 const sel = map[path];
                 if (sel) {
                     const el = document.querySelector('.nav-links ' + sel);

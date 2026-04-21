@@ -318,9 +318,4 @@ router.get('/calculator', (req, res) => {
     res.render('calculator', { title: 'Mining Calculator' });
 });
 
-// War Room: Core vs Knots hashrate battle
-router.get('/warroom', (req, res) => {
-    res.render('warroom', { title: 'War Room' });
-});
-
 module.exports = router;
