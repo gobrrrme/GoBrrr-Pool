@@ -16,6 +16,11 @@ chmod 755 /tmp/ckpool /var/log/ckpool
 # ckpool fails with errno 21 (EISDIR) if it tries to open a directory as a log file.
 find /var/log/ckpool -maxdepth 1 -mindepth 1 -type d -exec rm -rf {} + 2>/dev/null || true
 
+# Pre-create ckpool.log as a file so gobrrr-stats can bind-mount it as a file.
+# Without this, if gobrrr-stats starts before ckpool writes its first log line,
+# Docker creates ckpool.log as a directory, triggering the EISDIR crash again.
+touch /var/log/ckpool/ckpool.log
+
 # Build ZMQ config if ZMQ endpoint is provided
 ZMQ_CONFIG=""
 if [ -n "${BITCOIN_ZMQ_HASHBLOCK}" ]; then
