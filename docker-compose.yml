@@ -12,6 +12,7 @@ services:
         hard: 69420
     ports:
       - "${STRATUM_PORT:-3333}:3333"
+      - "${STRATUM_HIGHDIFF_PORT:-4444}:4444"
     volumes:
       - ckpool-socket:/tmp/ckpool
       - ckpool-logs:/var/log/ckpool

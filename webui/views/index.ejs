@@ -58,6 +58,10 @@
                     <div class="pool-stat-value" id="pool-best-diff">-</div>
                     <div class="pool-stat-label">Best Ever Difficulty</div>
                 </div>
+                <div class="pool-stat">
+                    <div class="pool-stat-value" id="pool-shares-sec">-</div>
+                    <div class="pool-stat-label">Shares/sec</div>
+                </div>
             </div>
         </div>
     </div>
@@ -260,7 +264,6 @@
         loadPoolStats();
         loadRecentSearches();
         loadBlockRewardEstimate();
-        loadHomeHashrateChart();
         loadLeaderboard();
         loadNodeInfo();
 
@@ -269,7 +272,6 @@
             loadBitcoinHeroData();
             loadPoolStats();
             loadBlockRewardEstimate();
-            loadHomeHashrateChart();
             loadLeaderboard();
             loadNodeInfo();
         }, 30000);
@@ -286,6 +288,10 @@
                 updateElement('pool-workers', pool.workers || 0);
                 updateElement('pool-users', pool.users || 0);
                 updateElement('pool-best-diff', formatDifficulty(pool.bestDiff || 0));
+                const sps = pool.sharesPerSecond || pool.sps1 || 0;
+                updateElement('pool-shares-sec', sps > 0 ? sps.toFixed(2) : '0');
+                // Update chart with already-fetched data — avoids second /api/pool request
+                renderHashrateChart(pool);
             }
         } catch (err) {
             console.error('Failed to load pool stats:', err);
@@ -307,50 +313,41 @@
         }
     }
 
-    async function loadHomeHashrateChart() {
-        try {
-            const res = await secureFetch('/api/pool');
-            const data = await res.json();
+    function renderHashrateChart(pool) {
+        const chartData = [
+            { label: '7d', value: pool.hashrate7d || 0 },
+            { label: '24h', value: pool.hashrate1d || 0 },
+            { label: '6h', value: pool.hashrate6h || 0 },
+            { label: '1h', value: pool.hashrate1h || 0 },
+            { label: '15m', value: pool.hashrate15m || 0 },
+            { label: '5m', value: pool.hashrate5m || 0 },
+            { label: '1m', value: pool.hashrate1m || 0 }
+        ];
 
-            if (data.success && data.data) {
-                const pool = data.data;
-                const chartData = [
-                    { label: '7d', value: pool.hashrate7d || 0 },
-                    { label: '24h', value: pool.hashrate1d || 0 },
-                    { label: '6h', value: pool.hashrate6h || 0 },
-                    { label: '1h', value: pool.hashrate1h || 0 },
-                    { label: '15m', value: pool.hashrate15m || 0 },
-                    { label: '5m', value: pool.hashrate5m || 0 },
-                    { label: '1m', value: pool.hashrate1m || 0 }
-                ];
+        const container = document.getElementById('home-chart-container');
+        if (!container) return;
+        const hasData = chartData.some(d => d.value > 0);
 
-                const container = document.getElementById('home-chart-container');
-                const hasData = chartData.some(d => d.value > 0);
-
-                if (!hasData) {
-                    if (homeHashrateChart) {
-                        homeHashrateChart.destroy();
-                        homeHashrateChart = null;
-                    }
-                    container.innerHTML = '<div class="no-chart-data"><p>No hashrate data yet</p><p class="hint">Data appears when miners connect</p></div>';
-                    return;
-                }
-
-                // Restore canvas if needed
-                if (!document.getElementById('home-hashrate-chart')) {
-                    container.innerHTML = '<canvas id="home-hashrate-chart"></canvas>';
-                }
-
-                // Update existing chart data instead of recreating
-                if (homeHashrateChart) {
-                    homeHashrateChart.data.datasets[0].data = chartData.map(d => d.value);
-                    homeHashrateChart.update('none');
-                } else if (typeof initHashrateChart === 'function') {
-                    homeHashrateChart = initHashrateChart(chartData, 'home-hashrate-chart');
-                }
+        if (!hasData) {
+            if (homeHashrateChart) {
+                homeHashrateChart.destroy();
+                homeHashrateChart = null;
             }
-        } catch (err) {
-            console.error('Failed to load hashrate chart:', err);
+            container.innerHTML = '<div class="no-chart-data"><p>No hashrate data yet</p><p class="hint">Data appears when miners connect</p></div>';
+            return;
+        }
+
+        // Restore canvas if needed
+        if (!document.getElementById('home-hashrate-chart')) {
+            container.innerHTML = '<canvas id="home-hashrate-chart"></canvas>';
+        }
+
+        // Update existing chart data instead of recreating
+        if (homeHashrateChart) {
+            homeHashrateChart.data.datasets[0].data = chartData.map(d => d.value);
+            homeHashrateChart.update('none');
+        } else if (typeof initHashrateChart === 'function') {
+            homeHashrateChart = initHashrateChart(chartData, 'home-hashrate-chart');
         }
     }
 

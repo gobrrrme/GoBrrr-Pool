@@ -4,11 +4,34 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><%= typeof title !== 'undefined' ? title + ' - ' : '' %>Go Brrr Pool</title>
+    <% if (typeof pageDescription !== 'undefined') { %>
+    <meta name="description" content="<%= pageDescription %>">
+    <% } %>
+    <% if (typeof canonical !== 'undefined') { %>
+    <link rel="canonical" href="<%= canonical %>">
+    <% } %>
+    <!-- Open Graph -->
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="<%= typeof ogTitle !== 'undefined' ? ogTitle : (typeof title !== 'undefined' ? title + ' - Go Brrr Pool' : 'Go Brrr Pool') %>">
+    <meta property="og:description" content="<%= typeof ogDescription !== 'undefined' ? ogDescription : 'Go Brrr Pool - Solo Bitcoin mining. Pooled hashrate. Zero fees.' %>">
+    <% if (typeof ogImage !== 'undefined') { %>
+    <meta property="og:image" content="<%= ogImage %>">
+    <% } %>
+    <% if (typeof canonical !== 'undefined') { %>
+    <meta property="og:url" content="<%= canonical %>">
+    <% } %>
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="<%= typeof ogTitle !== 'undefined' ? ogTitle : (typeof title !== 'undefined' ? title + ' - Go Brrr Pool' : 'Go Brrr Pool') %>">
+    <meta name="twitter:description" content="<%= typeof ogDescription !== 'undefined' ? ogDescription : 'Go Brrr Pool - Solo Bitcoin mining. Pooled hashrate. Zero fees.' %>">
+    <% if (typeof ogImage !== 'undefined') { %>
+    <meta name="twitter:image" content="<%= ogImage %>">
+    <% } %>
     <link rel="icon" type="image/png" href="/images/brrrpool.png">
     <link rel="apple-touch-icon" href="/images/brrrpool.png">
     <link rel="stylesheet" href="/css/style.css">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
+    <script src="/js/chart.min.js"></script>
+    <script src="/js/sortable.min.js"></script>
 </head>
 <body>
     <!-- Animated Background -->
@@ -131,6 +154,17 @@
         document.addEventListener('DOMContentLoaded', function() {
             loadNavBlocksFound();
             loadNavDiffAdj();
+
+            // Highlight active nav link
+            (function() {
+                const path = window.location.pathname;
+                const map = { '/': 'a[href="/"]', '/pool': 'a[href="/pool"]', '/calculator': 'a[href="/calculator"]', '/warroom': 'a[href="/warroom"]' };
+                const sel = map[path];
+                if (sel) {
+                    const el = document.querySelector('.nav-links ' + sel);
+                    if (el) el.classList.add('nav-active');
+                }
+            })();
         });
         setInterval(loadNavBlocksFound, 30000);
         setInterval(loadNavDiffAdj, 60000);

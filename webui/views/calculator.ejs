@@ -241,8 +241,8 @@
     font-size: 0.78rem;
     color: #888;
     background: rgba(255,255,255,0.04);
-    border: 1px solid rgba(255,255,255,0.08);
-    border-radius: 999px;
+    border: 1px solid #000000;
+    border-radius: 4px;
     padding: 5px 14px;
 }
 .calc-live-dot {
@@ -285,25 +285,26 @@
 .calc-qty-wrap {
     display: flex;
     gap: 0;
-    border: 1px solid rgba(255,255,255,0.1);
-    border-radius: 10px;
+    border: 1px solid #000000;
+    border-radius: 4px;
     overflow: hidden;
     transition: border-color 0.2s;
 }
 .calc-qty-wrap:focus-within { border-color: rgba(255,147,28,0.5); }
 .calc-qty-btn {
-    background: rgba(255,255,255,0.04);
+    background: #ff931c;
     border: none;
-    color: #888;
+    color: #151515;
     font-size: 1.1rem;
     line-height: 1;
     padding: 0 11px;
     cursor: pointer;
     transition: background 0.15s, color 0.15s;
     flex-shrink: 0;
-    font-family: inherit;
+    font-family: 'Inter', Helvetica, Arial, sans-serif;
+    font-weight: 600;
 }
-.calc-qty-btn:hover { background: rgba(255,147,28,0.12); color: #ff931c; }
+.calc-qty-btn:hover { background: #e8820f; }
 .calc-qty-input {
     flex: 1;
     border: none;

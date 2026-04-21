@@ -4953,7 +4953,7 @@ static int64_t get_smart_startdiff(const char *useragent)
 
 	/* ASICs - Bitmain S21/T21 series (120-270+ TH/s) */
 	if (strcasestr(useragent, "s21") || strcasestr(useragent, "t21"))
-		return 800000;
+		return 210000;
 
 	/* ASICs - Bitmain S9 (~13.5 TH/s) */
 	if (strcasestr(useragent, "s9"))
@@ -4965,7 +4965,7 @@ static int64_t get_smart_startdiff(const char *useragent)
 
 	/* ASICs - Bitmain (other: S19 series etc, 90-140 TH/s) */
 	if (strcasestr(useragent, "antminer") || strcasestr(useragent, "bitmain"))
-		return 600000;
+		return 210000;
 
 	/* ASICs - MicroBT Whatsminer M60 series (~186 TH/s) */
 	if (strcasestr(useragent, "m60"))
@@ -4985,7 +4985,7 @@ static int64_t get_smart_startdiff(const char *useragent)
 
 	/* ASIC firmware */
 	if (strcasestr(useragent, "braiins") || strcasestr(useragent, "bosminer"))
-		return 600000;
+		return 210000;
 	if (strcasestr(useragent, "vnish") || strcasestr(useragent, "luxos") ||
 	    strcasestr(useragent, "hiveon"))
 		return 600000;
@@ -5057,8 +5057,9 @@ static json_t *parse_subscribe(stratum_instance_t *client, const int64_t client_
 	if (strcasestr(client->useragent, "gminer"))
 		client->messages = true;
 
-	/* Smart startdiff: set optimal initial difficulty based on miner type */
-	{
+	/* Smart startdiff: set optimal initial difficulty based on miner type.
+	 * Skip for highdiff port clients — suggest_diff is already set. */
+	if (client->suggest_diff == 0) {
 		int64_t smart_diff = get_smart_startdiff(client->useragent);
 		if (smart_diff > 0 && smart_diff != client->diff) {
 			LOGNOTICE("Smart startdiff: \"%s\" -> %"PRId64" for %s",

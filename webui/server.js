@@ -16,13 +16,19 @@ app.set('trust proxy', 1);
 // View engine setup
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
+// Enable view cache in production (views are in image, not bind-mounted)
+app.set('view cache', process.env.NODE_ENV === 'production');
 
 // EJS Layouts
 app.use(expressLayouts);
 app.set('layout', 'layout');
 
-// Static files
-app.use(express.static(path.join(__dirname, 'public')));
+// Static files — long cache for immutable assets (nginx + browser)
+app.use(express.static(path.join(__dirname, 'public'), {
+    maxAge: process.env.NODE_ENV === 'production' ? '1d' : 0,
+    etag: true,
+    lastModified: true,
+}));
 
 // JSON parsing
 app.use(express.json());

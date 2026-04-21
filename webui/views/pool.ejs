@@ -123,7 +123,7 @@
                     <span class="fee-value"><%= pool.sps1.toFixed(2) %></span>
                 </div>
                 <div class="fee-item">
-                    <span class="fee-label">Accepted Diff</span>
+                    <span class="fee-label">Total Accepted Diff</span>
                     <span class="fee-value success"><%= formatDifficulty(pool.accepted) %></span>
                 </div>
                 <div class="fee-item">
@@ -219,278 +219,25 @@
 </div>
 
 <style>
-/* ─── Layout ─── */
-.pool-container .home-sections {
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
-    margin-bottom: 16px;
-}
-.compact-card { padding: 20px 24px !important; }
-
-/* ─── Section label with orange accent line ─── */
-.pool-section-label {
-    font-size: 0.7rem;
-    text-transform: uppercase;
-    letter-spacing: 2px;
-    color: #ff931c;
-    font-weight: 700;
-    margin-bottom: 10px;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-}
-/* Stop the line before the drag handle (handle: right:15px, width:26px = 41px + buffer) */
-.pool-section-label::after {
-    content: '';
-    flex: 1;
-    height: 1px;
-    background: rgba(255,147,28,0.25);
-    margin-right: 52px;
-}
-
-/* ─── Pool Hero Card ─── */
-.pool-hero { padding: 24px 28px !important; }
-.pool-hero-body {
-    display: flex;
-    gap: 0;
-    align-items: stretch;
-    margin-bottom: 20px;
-}
-.pool-hero-left { flex: 1.2; min-width: 0; }
-.pool-hero-right { flex: 1; min-width: 0; }
-.pool-hero-divider {
-    width: 1px;
-    background: rgba(255,255,255,0.08);
-    margin: 0 28px;
-    flex-shrink: 0;
-}
-.pool-hero-main-stat { margin: 10px 0 16px; }
-.pool-hero-number {
-    font-size: 3rem;
-    font-weight: 800;
-    color: #ff931c;
-    letter-spacing: -1px;
-    line-height: 1;
-}
-.pool-hero-unit {
-    font-size: 0.8rem;
-    color: #555;
-    text-transform: uppercase;
-    letter-spacing: 1.5px;
-    margin-top: 4px;
-}
-.pool-meta-row {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    margin-top: 4px;
-}
-.pool-meta-item { display: flex; align-items: baseline; gap: 4px; }
-.pool-meta-val { font-size: 1.1rem; font-weight: 700; color: #c4c4c4; }
-.pool-meta-lbl { font-size: 0.75rem; color: #555; text-transform: uppercase; letter-spacing: 0.5px; }
-.pool-meta-dot { color: #333; font-size: 1.2rem; }
-
-.pool-net-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 14px 20px;
-    margin-top: 10px;
-}
-.pool-net-val {
-    font-size: 1rem;
-    font-weight: 700;
-    color: #c4c4c4;
-    line-height: 1.2;
-}
-.pool-net-val.accent { color: #00d26a; }
-.pool-net-lbl {
-    font-size: 0.72rem;
-    color: #555;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    margin-top: 2px;
-}
-
+/* pool.ejs: records row sits below hero-body, no top border needed */
 .pool-records-row {
-    display: flex;
-    gap: 0;
-    border-top: 1px solid rgba(255,255,255,0.06);
-    padding-top: 16px;
-    flex-wrap: wrap;
+    margin-top: 16px;
 }
-.pool-record-item {
-    flex: 1;
-    min-width: 120px;
-    display: flex;
-    flex-direction: column;
-    gap: 3px;
-    padding: 0 16px;
-    border-right: 1px solid rgba(255,255,255,0.06);
-}
-.pool-record-item:first-child { padding-left: 0; }
-.pool-record-item:last-child { border-right: none; }
-.pool-record-lbl { font-size: 0.7rem; color: #555; text-transform: uppercase; letter-spacing: 0.5px; }
-.pool-record-val { font-size: 0.95rem; font-weight: 700; color: #c4c4c4; }
-.pool-record-val.highlight { color: #00d26a; }
-.highlight-item .pool-record-lbl { color: #6a9a6a; }
-
-/* ─── Block Potential Card ─── */
-.pool-potential-layout {
-    display: flex;
-    align-items: center;
-    gap: 0;
-    margin-top: 4px;
-}
-.pool-potential-left {
-    flex: 0 0 auto;
-    padding-right: 32px;
-    border-right: 1px solid rgba(255,255,255,0.08);
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-}
-.pool-potential-right {
-    flex: 1;
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 12px 20px;
-    padding-left: 32px;
-}
-.pool-potential-time {
-    font-size: 2.8rem;
-    font-weight: 800;
-    color: #ff931c;
-    letter-spacing: -1px;
-    line-height: 1;
-}
-.pool-potential-sublabel {
-    font-size: 0.72rem;
-    color: #555;
-    text-transform: uppercase;
-    letter-spacing: 1.5px;
-}
-.pool-potential-stat {}
-.pool-potential-val { font-size: 1.15rem; font-weight: 700; color: #c4c4c4; }
-.pool-potential-lbl {
-    font-size: 0.72rem;
-    color: #555;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    margin-top: 3px;
-}
-.pool-fee-strip {
-    display: flex;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: 8px;
-    padding-top: 10px;
-    border-top: 1px solid rgba(255,255,255,0.06);
-    font-size: 0.8rem;
-    color: #666;
-    margin-top: 4px;
-}
-.pool-fee-strip-label { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 1px; color: #444; }
-.pool-fee-chip { color: #888; }
-.pool-fee-chip strong { color: #ff931c; }
-.pool-fee-chip.dim strong { color: #c4c4c4; }
-.pool-fee-sep { color: #333; }
-
-/* ─── Share Performance / Pool Status: 4-col grid ─── */
-.pool-grid-4 { grid-template-columns: repeat(4, 1fr) !important; }
-.pool-section-grid { margin-top: 12px; }
-
-/* ─── Hashrate Bar Chart ─── */
-.pool-hr-bars { display: flex; flex-direction: column; gap: 9px; }
-.pool-hr-bar-row {
-    display: grid;
-    grid-template-columns: 28px 1fr 90px;
-    align-items: center;
-    gap: 12px;
-}
-.pool-hr-bar-label {
-    font-size: 0.72rem;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    color: #555;
-    font-weight: 600;
-    text-align: right;
-}
-.pool-hr-bar-track {
-    height: 8px;
-    background: rgba(255,255,255,0.05);
-    border-radius: 4px;
-    overflow: hidden;
-}
-.pool-hr-bar-fill {
-    height: 100%;
-    background: rgba(255,147,28,0.4);
-    border-radius: 4px;
-    transition: width 0.6s ease;
-}
-.pool-hr-bar-fill.is-max { background: #ff931c; }
-.pool-hr-bar-value {
-    font-size: 0.82rem;
-    font-weight: 600;
-    color: #888;
-    text-align: right;
-}
-.pool-hr-bar-value.is-max { color: #ff931c; }
-
-/* ─── Miner Pills ─── */
-.pool-miner-pills {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-}
-.pool-miner-pill {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    background: rgba(255,255,255,0.04);
-    border: 1px solid rgba(255,255,255,0.08);
-    border-radius: 999px;
-    padding: 6px 14px 6px 10px;
-    transition: border-color 0.2s;
-}
-.pool-miner-pill:hover { border-color: rgba(255,147,28,0.3); }
-.pool-miner-pill-name { font-size: 0.85rem; color: #c4c4c4; font-weight: 500; }
-.pool-miner-pill-count {
-    font-size: 0.78rem;
-    font-weight: 700;
-    color: #ff931c;
-    background: rgba(255,147,28,0.12);
-    border-radius: 999px;
-    padding: 1px 8px;
-    min-width: 22px;
-    text-align: center;
-}
-
-/* ─── Responsive ─── */
-@media (max-width: 900px) {
-    .pool-hero-body { flex-direction: column; }
-    .pool-hero-divider { width: 100%; height: 1px; margin: 20px 0; }
-    .pool-net-grid { grid-template-columns: repeat(2, 1fr); }
-    .pool-potential-layout { flex-direction: column; align-items: stretch; gap: 20px; }
-    .pool-potential-left { border-right: none; border-bottom: 1px solid rgba(255,255,255,0.08); padding-right: 0; padding-bottom: 20px; }
-    .pool-potential-right { padding-left: 0; }
-    .pool-grid-4 { grid-template-columns: repeat(2, 1fr) !important; }
+/* pool.ejs: potential left panel border */
+@media (max-width: 768px) {
+    .pool-potential-left {
+        border-right: none;
+        border-bottom: 1px solid #000000;
+        padding-right: 0;
+        padding-bottom: 16px;
+    }
+    .pool-potential-right {
+        padding-left: 0;
+    }
 }
 @media (max-width: 600px) {
-    .compact-card { padding: 14px 16px !important; }
     .pool-hero-number { font-size: 2.2rem; }
     .pool-potential-time { font-size: 2rem; }
-    .pool-potential-right { grid-template-columns: repeat(3, 1fr); }
-    .pool-records-row { gap: 12px; flex-direction: column; }
-    .pool-record-item { border-right: none; padding: 0; }
-    .pool-hr-bar-row { grid-template-columns: 24px 1fr 80px; }
-    .pool-section-label::after { margin-right: 42px; }
-}
-@media (max-width: 480px) {
-    .pool-net-grid { grid-template-columns: 1fr !important; }
-    .pool-potential-right { grid-template-columns: repeat(2, 1fr); }
-    .pool-grid-4 { grid-template-columns: repeat(2, 1fr) !important; }
-    .pool-hr-bar-row { grid-template-columns: 20px 1fr 70px; }
 }
 </style>
 

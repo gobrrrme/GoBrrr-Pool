@@ -2,7 +2,7 @@ const net = require('net');
 const fs = require('fs');
 const path = require('path');
 
-const SOCKET_TIMEOUT = 5000;
+const SOCKET_TIMEOUT = 3000;
 
 class CKPoolClient {
     constructor(socketDir) {
@@ -11,9 +11,6 @@ class CKPoolClient {
         this.listenerSocket = path.join(dir, 'listener');
         // Stratifier socket for API commands (poolstats, users, getuser, etc.)
         this.stratifierSocket = path.join(dir, 'stratifier');
-        console.log(`CKPool client initialized with sockets:`);
-        console.log(`  - listener: ${this.listenerSocket}`);
-        console.log(`  - stratifier: ${this.stratifierSocket}`);
     }
 
     // CKPool protocol: 4 bytes (uint32 LE) length prefix + message
@@ -107,9 +104,7 @@ class CKPoolClient {
             let poolstats = null;
             try {
                 poolstats = await this.sendCommand('poolstats', this.stratifierSocket);
-                console.log('poolstats response:', JSON.stringify(poolstats, null, 2));
             } catch (err) {
-                console.log('poolstats failed, falling back to stratifierstats:', err.message);
             }
 
             // Also get stratifierstats for additional data
@@ -130,10 +125,7 @@ class CKPoolClient {
             // Use getuser API on stratifier socket
             // Format: getuser.{"user":"address"}
             const command = `getuser.${JSON.stringify({user: btcAddress})}`;
-            console.log(`Sending getuser command: ${command}`);
-            const userStats = await this.sendCommand(command, this.stratifierSocket);
-            console.log(`User stats for ${btcAddress}:`, JSON.stringify(userStats, null, 2));
-            return userStats;
+            return await this.sendCommand(command, this.stratifierSocket);
         } catch (err) {
             console.error(`Failed to get user stats for ${btcAddress}:`, err.message);
             return null;
@@ -145,10 +137,7 @@ class CKPoolClient {
             // Format: getworker.{"worker":"username.workername"}
             const workerFullName = workerName ? `${btcAddress}.${workerName}` : btcAddress;
             const command = `getworker.${JSON.stringify({worker: workerFullName})}`;
-            console.log(`Sending getworker command: ${command}`);
-            const workerStats = await this.sendCommand(command, this.stratifierSocket);
-            console.log(`Worker stats for ${workerFullName}:`, JSON.stringify(workerStats, null, 2));
-            return workerStats;
+            return await this.sendCommand(command, this.stratifierSocket);
         } catch (err) {
             console.error(`Failed to get worker stats:`, err.message);
             return null;
@@ -157,9 +146,7 @@ class CKPoolClient {
 
     async getAllUsers() {
         try {
-            const users = await this.sendCommand('users', this.stratifierSocket);
-            console.log('All users:', JSON.stringify(users, null, 2));
-            return users;
+            return await this.sendCommand('users', this.stratifierSocket);
         } catch (err) {
             console.error('Failed to get users list:', err.message);
             return null;
@@ -168,9 +155,7 @@ class CKPoolClient {
 
     async getAllWorkers() {
         try {
-            const workers = await this.sendCommand('workers', this.stratifierSocket);
-            console.log('All workers:', JSON.stringify(workers, null, 2));
-            return workers;
+            return await this.sendCommand('workers', this.stratifierSocket);
         } catch (err) {
             console.error('Failed to get workers list:', err.message);
             return null;
@@ -182,10 +167,7 @@ class CKPoolClient {
             // Format: ucinfo.{"user":"address"}
             // Returns client info including useragent for all clients of this user
             const command = `ucinfo.${JSON.stringify({user: btcAddress})}`;
-            console.log(`Sending ucinfo command: ${command}`);
-            const clientInfo = await this.sendCommand(command, this.stratifierSocket);
-            console.log(`Client info for ${btcAddress}:`, JSON.stringify(clientInfo, null, 2));
-            return clientInfo;
+            return await this.sendCommand(command, this.stratifierSocket);
         } catch (err) {
             console.error(`Failed to get client info for ${btcAddress}:`, err.message);
             return null;
@@ -197,10 +179,7 @@ class CKPoolClient {
             // Format: wcinfo.{"worker":"username.workername"}
             // Returns client info including useragent for this specific worker
             const command = `wcinfo.${JSON.stringify({worker: workerFullName})}`;
-            console.log(`Sending wcinfo command: ${command}`);
-            const clientInfo = await this.sendCommand(command, this.stratifierSocket);
-            console.log(`Client info for ${workerFullName}:`, JSON.stringify(clientInfo, null, 2));
-            return clientInfo;
+            return await this.sendCommand(command, this.stratifierSocket);
         } catch (err) {
             console.error(`Failed to get worker client info:`, err.message);
             return null;
@@ -228,9 +207,7 @@ class CKPoolClient {
     async getAllClients() {
         try {
             // Get all connected clients with their info
-            const clients = await this.sendCommand('clients', this.stratifierSocket);
-            console.log('All clients:', JSON.stringify(clients, null, 2));
-            return clients;
+            return await this.sendCommand('clients', this.stratifierSocket);
         } catch (err) {
             console.error('Failed to get clients list:', err.message);
             return null;

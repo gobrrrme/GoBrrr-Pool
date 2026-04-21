@@ -37,7 +37,7 @@ if [ -n "${BITCOIN_RPC_HOST_2}" ]; then
         {
             \"url\": \"${BITCOIN_RPC_HOST_2}:${BITCOIN_RPC_PORT_2:-8332}\",
             \"auth\": \"${BITCOIN_RPC_USER_2:-${BITCOIN_RPC_USER:-rpcuser}}\",
-            \"pass\": \"${BITCOIN_RPC_PASS_2:-${BITCOIN_RPC_PASS:-rpcpassword}}\",
+            \"pass\": \"${BITCOIN_RPC_PASS_2:-${CORE_RPC_PASS:-${BITCOIN_RPC_PASS:-rpcpassword}}}\",
             \"notify\": true
         }"
     echo "Secondary Bitcoin node configured: ${BITCOIN_RPC_HOST_2}"
@@ -60,11 +60,13 @@ cat > /etc/ckpool/ckpool.conf << EOF
     ${BTCSIG_CONFIG}
     ${ZMQ_CONFIG}
     "serverurl": [
-        "${STRATUM_BIND:-0.0.0.0}:${STRATUM_PORT:-3333}"
+        "${STRATUM_BIND:-0.0.0.0}:${STRATUM_PORT:-3333}"$([ -n "${STRATUM_HIGHDIFF_PORT}" ] && echo ",
+        \"${STRATUM_BIND:-0.0.0.0}:${STRATUM_HIGHDIFF_PORT}\"")
     ],
     "mindiff": ${MIN_DIFFICULTY:-1},
     "startdiff": ${START_DIFFICULTY:-10000},
     "maxdiff": ${MAX_DIFFICULTY:-0},
+    "highdiff": ${HIGHDIFF:-1000000},
     "blockpoll": ${BLOCKPOLL:-50},
     "update_interval": ${UPDATE_INTERVAL:-20},
     "nonce1length": ${NONCE1_LENGTH:-4},

@@ -14,82 +14,72 @@
 
     <% if (workerData) { %>
     <div class="user-stats">
-        <!-- Worker Info -->
+
+        <!-- Worker Info + Status in one row -->
         <div class="stats-section">
             <h2>Worker Info</h2>
-            <div class="stats-grid">
-                <div class="stat-card highlight">
-                    <div class="stat-label">Worker Name</div>
-                    <div class="stat-value"><%= workerData.name %></div>
+            <div class="stat-row">
+                <div class="stat-row-item accent">
+                    <span class="stat-row-label">Worker Name</span>
+                    <span class="stat-row-value"><%= workerData.name %></span>
                 </div>
-                <div class="stat-card">
-                    <div class="stat-label">Miner Type</div>
-                    <div class="stat-value" title="<%= workerData.useragent %>"><%= workerData.minerType %></div>
+                <div class="stat-row-item">
+                    <span class="stat-row-label">Miner Type</span>
+                    <span class="stat-row-value" title="<%= workerData.useragent %>"><%= workerData.minerType %></span>
                 </div>
-                <div class="stat-card">
-                    <div class="stat-label">Status</div>
-                    <div class="stat-value <%= workerData.isIdle ? 'warning' : 'success' %>"><%= workerData.isIdle ? 'Idle' : 'Active' %></div>
+                <div class="stat-row-item">
+                    <span class="stat-row-label">Status</span>
+                    <span class="stat-row-value <%= workerData.isIdle ? 'warn' : 'green' %>"><%= workerData.isIdle ? 'Idle' : 'Active' %></span>
                 </div>
                 <% if (workerData.currentDiff > 0) { %>
-                <div class="stat-card">
-                    <div class="stat-label">Current Difficulty</div>
-                    <div class="stat-value"><%= formatDifficulty(workerData.currentDiff) %></div>
+                <div class="stat-row-item">
+                    <span class="stat-row-label">Current Difficulty</span>
+                    <span class="stat-row-value"><%= formatDifficulty(workerData.currentDiff) %></span>
                 </div>
                 <% } %>
             </div>
         </div>
 
-        <!-- Hashrate Overview -->
+        <!-- Hashrate + Shares + Activity consolidated -->
         <div class="stats-section">
-            <h2>Hashrate</h2>
-            <div class="stats-grid">
-                <div class="stat-card highlight">
-                    <div class="stat-label">Current (1m avg)</div>
-                    <div class="stat-value"><%= formatHashrate(workerData.hashrate.current) %></div>
+            <h2>Hashrate &amp; Performance</h2>
+            <div class="stat-row">
+                <div class="stat-row-item accent">
+                    <span class="stat-row-label">Current (1m avg)</span>
+                    <span class="stat-row-value orange"><%= formatHashrate(workerData.hashrate.current) %></span>
                 </div>
-                <div class="stat-card">
-                    <div class="stat-label">5m Average</div>
-                    <div class="stat-value"><%= formatHashrate(workerData.hashrate.avg5m) %></div>
+                <div class="stat-row-item">
+                    <span class="stat-row-label">5m Average</span>
+                    <span class="stat-row-value"><%= formatHashrate(workerData.hashrate.avg5m) %></span>
                 </div>
-                <div class="stat-card">
-                    <div class="stat-label">1h Average</div>
-                    <div class="stat-value"><%= formatHashrate(workerData.hashrate.avg1h) %></div>
+                <div class="stat-row-item">
+                    <span class="stat-row-label">1h Average</span>
+                    <span class="stat-row-value"><%= formatHashrate(workerData.hashrate.avg1h) %></span>
                 </div>
-                <div class="stat-card">
-                    <div class="stat-label">24h Average</div>
-                    <div class="stat-value"><%= formatHashrate(workerData.hashrate.avg24h) %></div>
+                <div class="stat-row-item">
+                    <span class="stat-row-label">24h Average</span>
+                    <span class="stat-row-value"><%= formatHashrate(workerData.hashrate.avg24h) %></span>
                 </div>
                 <% if (workerData.hashrate.avg7d > 0) { %>
-                <div class="stat-card">
-                    <div class="stat-label">7d Average</div>
-                    <div class="stat-value"><%= formatHashrate(workerData.hashrate.avg7d) %></div>
+                <div class="stat-row-item">
+                    <span class="stat-row-label">7d Average</span>
+                    <span class="stat-row-value"><%= formatHashrate(workerData.hashrate.avg7d) %></span>
                 </div>
                 <% } %>
             </div>
-        </div>
 
-        <!-- Shares -->
-        <div class="stats-section">
-            <h2>Shares</h2>
-            <div class="stats-grid">
-                <div class="stat-card">
-                    <div class="stat-label">Accepted</div>
-                    <div class="stat-value success"><%= workerData.shares.toLocaleString() %></div>
+            <div class="stat-row" style="margin-top: 8px;">
+                <div class="stat-row-item">
+                    <span class="stat-row-label">Accepted Shares</span>
+                    <span class="stat-row-value green"><%= workerData.shares.toLocaleString() %></span>
                 </div>
-                <div class="stat-card">
-                    <div class="stat-label">Best Difficulty</div>
-                    <div class="stat-value"><%= formatDifficulty(workerData.bestDiff) %></div>
+                <div class="stat-row-item">
+                    <span class="stat-row-label">Best Difficulty</span>
+                    <span class="stat-row-value"><%= formatDifficulty(workerData.bestDiff) %></span>
                 </div>
-            </div>
-        </div>
-
-        <!-- Activity -->
-        <div class="stats-section">
-            <h2>Activity</h2>
-            <div class="stats-grid">
-                <div class="stat-card">
-                    <div class="stat-label">Last Share</div>
-                    <div class="stat-value"><%= timeAgo(workerData.lastShare) %></div>
+                <div class="stat-row-item">
+                    <span class="stat-row-label">Last Share</span>
+                    <span class="stat-row-value"><%= timeAgo(workerData.lastShare) %></span>
                 </div>
             </div>
         </div>
@@ -113,15 +103,15 @@
     <div class="no-data">
         <h2>Worker Not Found</h2>
         <p>No mining activity found for worker "<%= worker %>".</p>
-        <p style="color: #888; font-size: 0.9rem; margin-top: 15px;">
+        <p style="color: #555; font-size: 0.88rem; margin-top: 12px;">
             This could mean:
         </p>
-        <ul style="color: #888; font-size: 0.9rem; text-align: left; max-width: 400px; margin: 10px auto;">
+        <ul style="color: #555; font-size: 0.88rem; text-align: left; max-width: 400px; margin: 8px auto;">
             <li>The worker has never connected to this pool</li>
             <li>The worker is not currently active</li>
             <li>The worker name was typed incorrectly</li>
         </ul>
-        <div style="margin-top: 25px;">
+        <div style="margin-top: 20px;">
             <a href="/stats/<%= address %>" class="btn btn-primary">View All Workers</a>
         </div>
     </div>
@@ -135,9 +125,9 @@
 
 <style>
 .worker-address {
-    font-size: 0.85rem;
-    color: #888;
-    margin-top: 5px;
+    font-size: 0.82rem;
+    color: #666;
+    margin-top: 6px;
 }
 
 .worker-address a {
