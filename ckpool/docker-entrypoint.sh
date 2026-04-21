@@ -11,6 +11,11 @@ rm -f /var/log/ckpool/*.pid 2>/dev/null || true
 mkdir -p /tmp/ckpool /var/log/ckpool /etc/ckpool
 chmod 755 /tmp/ckpool /var/log/ckpool
 
+# Fix: a broken previous install can leave log-file paths as directories
+# (Docker creates missing volume sub-paths as directories).
+# ckpool fails with errno 21 (EISDIR) if it tries to open a directory as a log file.
+find /var/log/ckpool -maxdepth 1 -mindepth 1 -type d -exec rm -rf {} + 2>/dev/null || true
+
 # Build ZMQ config if ZMQ endpoint is provided
 ZMQ_CONFIG=""
 if [ -n "${BITCOIN_ZMQ_HASHBLOCK}" ]; then
