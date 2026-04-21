@@ -1,0 +1,36 @@
+manifestVersion: 1
+id: gobrrr-pool
+category: bitcoin
+name: GoBrrr Pool
+version: "1.0.0"
+tagline: Solo Bitcoin mining pool on your own node
+description: >-
+  GoBrrr Pool turns your Umbrel into a self-hosted solo Bitcoin mining pool.
+  Connect your ASICs or other miners directly to your own Bitcoin node and mine
+  with full sovereignty — no third-party pool, no KYC, no fees, no middleman.
+
+  A real-time web dashboard shows pool hashrate, connected workers, leaderboard
+  with best-ever difficulties, miner types, and live Bitcoin network statistics
+  (difficulty adjustment, mempool, fee rates, recent blocks).
+
+  Two stratum ports are available: port 21420 for standard mining and port 21422
+  for high-difficulty mode (min diff 1,000,000) suited for powerful machines and
+  hashrate rentals. Both ports are fully configurable.
+
+  Built on ckpool — the same battle-tested open-source pool software powering
+  solo.ckpool.org. Workers connect using their Bitcoin address as the username,
+  so any block found pays out directly to the miner's own wallet.
+releaseNotes: ""
+developer: GoBrrrMe
+website: https://github.com/gobrrrme/GoBrrr-Pool
+dependencies:
+  - bitcoin
+repo: https://github.com/gobrrrme/GoBrrr-Pool
+support: https://github.com/gobrrrme/GoBrrr-Pool/issues
+port: 21421
+gallery: []
+path: ""
+defaultUsername: ""
+defaultPassword: ""
+submitter: gobrrrme
+submission: ""
