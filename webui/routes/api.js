@@ -2,7 +2,6 @@ const express = require('express');
 const router = express.Router();
 const ckpool = require('../lib/ckpool-client');
 const { parseUserStats, parsePoolStats, aggregateMinerTypes, parseMinerType, formatHashrate, formatDifficulty } = require('../lib/stats-parser');
-const db             = require('../lib/db');
 const minerCache = require('../lib/miner-cache');
 
 // Mempool API base URL - can be local (Umbrel) or public
@@ -529,13 +528,9 @@ function formatSmallBTC(btc) {
     return '< 0.00000001 sats';
 }
 
-// Bitcoin RPC helpers — env vars take priority, DB config is the fallback
-// This allows credentials to be set via the admin panel (stored encrypted in DB)
-// without needing them in any env file.
-
 function getRpcParams() {
-    const user = process.env.BITCOIN_RPC_USER || db.getConfig('bitcoin_rpc_user') || '';
-    const pass = process.env.BITCOIN_RPC_PASS || db.getConfig('bitcoin_rpc_pass') || '';
+    const user = process.env.BITCOIN_RPC_USER || '';
+    const pass = process.env.BITCOIN_RPC_PASS || '';
     const url  = `http://${process.env.BITCOIN_RPC_HOST || '127.0.0.1'}:${process.env.BITCOIN_RPC_PORT || 8332}`;
     return { url, auth: Buffer.from(`${user}:${pass}`).toString('base64') };
 }
