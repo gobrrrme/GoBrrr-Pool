@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2018,2023 Con Kolivas
+ * Copyright 2014-2018,2023,2026 Con Kolivas
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the Free
@@ -15,6 +15,7 @@
 #include "libckpool.h"
 #include "bitcoin.h"
 #include "stratifier.h"
+#include "yyjson.h"
 
 static char* understood_rules[] = {"segwit"};
 
@@ -33,7 +34,8 @@ static bool check_required_rule(const char* rule)
  * bitcoind to see if it's a valid address */
 bool validate_address(connsock_t *cs, const char *address, bool *script, bool *segwit)
 {
-	json_t *val, *res_val, *valid_val, *tmp_val;
+	yyjson_doc *doc;
+	yyjson_val *root, *res_val, *valid_val, *tmp_val;
 	char rpc_req[128];
 	bool ret = false;
 
@@ -43,29 +45,34 @@ bool validate_address(connsock_t *cs, const char *address, bool *script, bool *s
 	}
 
 	snprintf(rpc_req, 128, "{\"method\": \"validateaddress\", \"params\": [\"%s\"]}\n", address);
-	val = json_rpc_response(cs, rpc_req);
-	if (!val) {
+	doc = yyjson_rpc_response(cs, rpc_req);
+	if (!doc) {
 		/* May get a parse error with an invalid address */
 		LOGNOTICE("%s:%s Failed to get valid json response to validate_address %s",
 			  cs->url, cs->port, address);
 		return ret;
 	}
-	res_val = json_object_get(val, "result");
-	if (!res_val) {
+	root = yyjson_doc_get_root(doc);
+	if (unlikely(!root)) {
+		LOGERR("Failed to get json root in response to validate_address");
+		goto out;
+	}
+	res_val = yyjson_obj_get(root, "result");
+	if (unlikely(!res_val)) {
 		LOGERR("Failed to get result json response to validate_address");
 		goto out;
 	}
-	valid_val = json_object_get(res_val, "isvalid");
+	valid_val = yyjson_obj_get(res_val, "isvalid");
 	if (!valid_val) {
 		LOGERR("Failed to get isvalid json response to validate_address");
 		goto out;
 	}
-	if (!json_is_true(valid_val)) {
+	if (!yyjson_is_true(valid_val)) {
 		LOGDEBUG("Bitcoin address %s is NOT valid", address);
 		goto out;
 	}
 	ret = true;
-	tmp_val = json_object_get(res_val, "isscript");
+	tmp_val = yyjson_obj_get(res_val, "isscript");
 	if (unlikely(!tmp_val)) {
 		/* All recent bitcoinds with wallet support built in should
 		 * support this, if not, look for addresses the braindead way
@@ -79,22 +86,22 @@ bool validate_address(connsock_t *cs, const char *address, bool *script, bool *s
 			ret = false;
 		goto out;
 	}
-	*script = json_is_true(tmp_val);
-	tmp_val = json_object_get(res_val, "iswitness");
+	*script = yyjson_is_true(tmp_val);
+	tmp_val = yyjson_obj_get(res_val, "iswitness");
 	if (unlikely(!tmp_val))
 		goto out;
-	*segwit = json_is_true(tmp_val);
+	*segwit = yyjson_is_true(tmp_val);
 	LOGDEBUG("Bitcoin address %s IS valid%s%s", address, *script ? " script" : "",
 		 *segwit ? " segwit" : "");
 out:
-	if (val)
-		json_decref(val);
+	if (doc)
+		yyjson_doc_free(doc);
 	return ret;
 }
 
-json_t *validate_txn(connsock_t *cs, const char *txn)
+yyjson_doc *validate_txn(connsock_t *cs, const char *txn)
 {
-	json_t *val = NULL;
+	yyjson_doc *doc = NULL;
 	char *rpc_req;
 	int len;
 
@@ -105,12 +112,12 @@ json_t *validate_txn(connsock_t *cs, const char *txn)
 	len = strlen(txn) + 64;
 	rpc_req = ckalloc(len);
 	sprintf(rpc_req, "{\"method\": \"decoderawtransaction\", \"params\": [\"%s\"]}", txn);
-	val = json_rpc_call(cs, rpc_req);
+	doc = yyjson_rpc_call(cs, rpc_req);
 	dealloc(rpc_req);
-	if (!val)
+	if (!doc)
 		LOGDEBUG("%s:%s Failed to get valid json response to decoderawtransaction", cs->url, cs->port);
 out:
-	return val;
+	return doc;
 }
 
 static const char *gbt_req = "{\"method\": \"getblocktemplate\", \"params\": [{\"capabilities\": [\"coinbasetxn\", \"workid\", \"coinbase/append\"], \"rules\" : [\"segwit\"]}]}\n";
@@ -120,7 +127,10 @@ static const char *gbt_req = "{\"method\": \"getblocktemplate\", \"params\": [{\
  * required to assemble a mining template, storing it in a gbtbase_t structure */
 bool gen_gbtbase(connsock_t *cs, gbtbase_t *gbt)
 {
-	json_t *rules_array, *coinbase_aux, *res_val, *val;
+	yyjson_doc *doc = NULL;
+	yyjson_mut_doc *mut_doc;
+	yyjson_val *rules_array, *coinbase_aux, *res_val, *root;
+	yyjson_mut_val *mut_root;
 	const char *previousblockhash;
 	char hash_swap[32], tmp[32];
 	uint64_t coinbasevalue;
@@ -134,23 +144,28 @@ bool gen_gbtbase(connsock_t *cs, gbtbase_t *gbt)
 	int i;
 	bool ret = false;
 
-	val = json_rpc_call(cs, gbt_req);
-	if (!val) {
+	doc = yyjson_rpc_call(cs, gbt_req);
+	if (!doc) {
 		LOGWARNING("%s:%s Failed to get valid json response to getblocktemplate", cs->url, cs->port);
 		return ret;
 	}
-	res_val = json_object_get(val, "result");
+	root = yyjson_doc_get_root(doc);
+	if (unlikely(!root)) {
+		LOGERR("Failed to get json root in response to getblocktemplate");
+		goto out;
+	}
+	res_val = yyjson_obj_get(root, "result");
 	if (!res_val) {
 		LOGWARNING("Failed to get result in json response to getblocktemplate");
 		goto out;
 	}
 
-	rules_array = json_object_get(res_val, "rules");
+	rules_array = yyjson_obj_get(res_val, "rules");
 	if (rules_array) {
-		int rule_count =  json_array_size(rules_array);
+		int rule_count =  yyjson_arr_size(rules_array);
 
 		for (i = 0; i < rule_count; i++) {
-			rule = json_string_value(json_array_get(rules_array, i));
+			rule = yyjson_get_str(yyjson_arr_get(rules_array, i));
 			if (rule && *rule++ == '!' && !check_required_rule(rule)) {
 				LOGERR("Required rule not understood: %s", rule);
 				goto out;
@@ -158,15 +173,15 @@ bool gen_gbtbase(connsock_t *cs, gbtbase_t *gbt)
 		}
 	}
 
-	previousblockhash = json_string_value(json_object_get(res_val, "previousblockhash"));
-	target = json_string_value(json_object_get(res_val, "target"));
-	version = json_integer_value(json_object_get(res_val, "version"));
-	curtime = json_integer_value(json_object_get(res_val, "curtime"));
-	bits = json_string_value(json_object_get(res_val, "bits"));
-	height = json_integer_value(json_object_get(res_val, "height"));
-	coinbasevalue = json_integer_value(json_object_get(res_val, "coinbasevalue"));
-	coinbase_aux = json_object_get(res_val, "coinbaseaux");
-	flags = json_string_value(json_object_get(coinbase_aux, "flags"));
+	previousblockhash = yyjson_get_str(yyjson_obj_get(res_val, "previousblockhash"));
+	target = yyjson_get_str(yyjson_obj_get(res_val, "target"));
+	version = yyjson_get_num(yyjson_obj_get(res_val, "version"));
+	curtime = yyjson_get_num(yyjson_obj_get(res_val, "curtime"));
+	bits = yyjson_get_str(yyjson_obj_get(res_val, "bits"));
+	height = yyjson_get_num(yyjson_obj_get(res_val, "height"));
+	coinbasevalue = yyjson_get_num(yyjson_obj_get(res_val, "coinbasevalue"));
+	coinbase_aux = yyjson_obj_get(res_val, "coinbaseaux");
+	flags = yyjson_get_str(yyjson_obj_get(coinbase_aux, "flags"));
 	if (!flags)
 		flags = "";
 
@@ -176,9 +191,17 @@ bool gen_gbtbase(connsock_t *cs, gbtbase_t *gbt)
 	}
 
 	/* Store getblocktemplate for remainder of json components as is */
-	json_incref(res_val);
-	json_object_del(val, "result");
-	gbt->json = res_val;
+	mut_doc = yyjson_mut_doc_new(&ckyyalc);
+	if (unlikely(!mut_doc)) {
+		LOGEMERG("Failed to allocate mut_doc");
+		exit(1);
+	}
+	mut_root = yyjson_val_mut_copy(mut_doc, res_val);
+	if (unlikely(!mut_root)) {
+		LOGEMERG("Failed to allocate mut_root");
+		exit(1);
+	}
+	yyjson_mut_doc_set_root(mut_doc, mut_root);
 
 	hex2bin(hash_swap, previousblockhash, 32);
 	swap_256(tmp, hash_swap);
@@ -189,21 +212,21 @@ bool gen_gbtbase(connsock_t *cs, gbtbase_t *gbt)
 	hex2bin(hash_swap, target, 32);
 	bswap_256(tmp, hash_swap);
 	gbt->diff = diff_from_target((uchar *)tmp);
-	json_object_set_new_nocheck(gbt->json, "diff", json_real(gbt->diff));
+	yyjson_mut_obj_add_real(mut_doc, mut_root, "diff", gbt->diff);
 
 	gbt->version = version;
 
 	gbt->curtime = curtime;
 
 	snprintf(gbt->ntime, 9, "%08x", curtime);
-	json_object_set_new_nocheck(gbt->json, "ntime", json_string_nocheck(gbt->ntime));
+	yyjson_mut_obj_add_str(mut_doc, mut_root, "ntime", gbt->ntime);
 	sscanf(gbt->ntime, "%x", &gbt->ntime32);
 
 	snprintf(gbt->bbversion, 9, "%08x", version);
-	json_object_set_new_nocheck(gbt->json, "bbversion", json_string_nocheck(gbt->bbversion));
+	yyjson_mut_obj_add_str(mut_doc, mut_root, "bbversion", gbt->bbversion);
 
 	snprintf(gbt->nbit, 9, "%s", bits);
-	json_object_set_new_nocheck(gbt->json, "nbit", json_string_nocheck(gbt->nbit));
+	yyjson_mut_obj_add_str(mut_doc, mut_root, "nbit", gbt->nbit);
 
 	gbt->coinbasevalue = coinbasevalue;
 
@@ -211,17 +234,22 @@ bool gen_gbtbase(connsock_t *cs, gbtbase_t *gbt)
 
 	gbt->flags = strdup(flags);
 
+	/* Create immutable json for faster access in gbt */
+	gbt->gbtdoc = yyjson_mut_doc_imut_copy(mut_doc, &ckyyalc);
+	gbt->gbtroot = yyjson_doc_get_root(gbt->gbtdoc);
+	yyjson_mut_doc_free(mut_doc);
+
 	ret = true;
 out:
-	json_decref(val);
+	yyjson_doc_free(doc);
 	return ret;
 }
 
 void clear_gbtbase(gbtbase_t *gbt)
 {
 	free(gbt->flags);
-	if (gbt->json)
-		json_decref(gbt->json);
+	if (gbt->gbtdoc)
+		yyjson_doc_free(gbt->gbtdoc);
 	memset(gbt, 0, sizeof(gbtbase_t));
 }
 
@@ -231,22 +259,28 @@ static const char *blockcount_req = "{\"method\": \"getblockcount\"}\n";
  * fails. */
 int get_blockcount(connsock_t *cs)
 {
-	json_t *val, *res_val;
+	yyjson_doc *doc;
+	yyjson_val *root, *res_val;
 	int ret = -1;
 
-	val = json_rpc_call(cs, blockcount_req);
-	if (!val) {
+	doc = yyjson_rpc_call(cs, blockcount_req);
+	if (!doc) {
 		LOGWARNING("%s:%s Failed to get valid json response to getblockcount", cs->url, cs->port);
 		return ret;
 	}
-	res_val = json_object_get(val, "result");
+	root = yyjson_doc_get_root(doc);
+	if (unlikely(!root)) {
+		LOGERR("Failed to get json root in response to getblockcount");
+		goto out;
+	}
+	res_val = yyjson_obj_get(root, "result");
 	if (!res_val) {
 		LOGWARNING("Failed to get result in json response to getblockcount");
 		goto out;
 	}
-	ret = json_integer_value(res_val);
+	ret = yyjson_get_num(res_val);
 out:
-	json_decref(val);
+	yyjson_doc_free(doc);
 	return ret;
 }
 
@@ -254,23 +288,29 @@ out:
  * which should be at least 65 bytes long since the hash is 64 chars. */
 bool get_blockhash(connsock_t *cs, int height, char *hash)
 {
-	json_t *val, *res_val;
+	yyjson_doc *doc;
+	yyjson_val *root, *res_val;
 	const char *res_ret;
 	char rpc_req[128];
 	bool ret = false;
 
 	sprintf(rpc_req, "{\"method\": \"getblockhash\", \"params\": [%d]}\n", height);
-	val = json_rpc_call(cs, rpc_req);
-	if (!val) {
+	doc = yyjson_rpc_call(cs, rpc_req);
+	if (!doc) {
 		LOGWARNING("%s:%s Failed to get valid json response to getblockhash", cs->url, cs->port);
 		return ret;
 	}
-	res_val = json_object_get(val, "result");
+	root = yyjson_doc_get_root(doc);
+	if (unlikely(!root)) {
+		LOGERR("Failed to get json root in response to getblockhash");
+		goto out;
+	}
+	res_val = yyjson_obj_get(root, "result");
 	if (!res_val) {
 		LOGWARNING("Failed to get result in json response to getblockhash");
 		goto out;
 	}
-	res_ret = json_string_value(res_val);
+	res_ret = yyjson_get_str(res_val);
 	if (!res_ret || !strlen(res_ret)) {
 		LOGWARNING("Got null string in result to getblockhash");
 		goto out;
@@ -278,7 +318,7 @@ bool get_blockhash(connsock_t *cs, int height, char *hash)
 	strncpy(hash, res_ret, 65);
 	ret = true;
 out:
-	json_decref(val);
+	yyjson_doc_free(doc);
 	return ret;
 }
 
@@ -287,21 +327,27 @@ static const char *bestblockhash_req = "{\"method\": \"getbestblockhash\"}\n";
 /* Request getbestblockhash from bitcoind. bitcoind 0.9+ only */
 bool get_bestblockhash(connsock_t *cs, char *hash)
 {
-	json_t *val, *res_val;
+	yyjson_doc *doc;
+	yyjson_val *root, *res_val;
 	const char *res_ret;
 	bool ret = false;
 
-	val = json_rpc_call(cs, bestblockhash_req);
-	if (!val) {
+	doc = yyjson_rpc_call(cs, bestblockhash_req);
+	if (!doc) {
 		LOGWARNING("%s:%s Failed to get valid json response to getbestblockhash", cs->url, cs->port);
 		return ret;
 	}
-	res_val = json_object_get(val, "result");
+	root = yyjson_doc_get_root(doc);
+	if (unlikely(!root)) {
+		LOGERR("Failed to get json root in response to getbestblockhash");
+		goto out;
+	}
+	res_val = yyjson_obj_get(root, "result");
 	if (!res_val) {
 		LOGWARNING("Failed to get result in json response to getbestblockhash");
 		goto out;
 	}
-	res_ret = json_string_value(res_val);
+	res_ret = yyjson_get_str(res_val);
 	if (!res_ret || !strlen(res_ret)) {
 		LOGWARNING("Got null string in result to getbestblockhash");
 		goto out;
@@ -309,13 +355,14 @@ bool get_bestblockhash(connsock_t *cs, char *hash)
 	strncpy(hash, res_ret, 65);
 	ret = true;
 out:
-	json_decref(val);
+	yyjson_doc_free(doc);
 	return ret;
 }
 
 bool submit_block(connsock_t *cs, const char *params)
 {
-	json_t *val, *res_val;
+	yyjson_doc *doc;
+	yyjson_val *root, *res_val;
 	int len, retries = 0;
 	const char *res_ret;
 	bool ret = false;
@@ -325,25 +372,34 @@ bool submit_block(connsock_t *cs, const char *params)
 retry:
 	rpc_req = ckalloc(len);
 	sprintf(rpc_req, "{\"method\": \"submitblock\", \"params\": [\"%s\"]}\n", params);
-	val = json_rpc_call(cs, rpc_req);
+	doc = yyjson_rpc_call(cs, rpc_req);
 	dealloc(rpc_req);
-	if (!val) {
+	if (!doc) {
 		LOGWARNING("%s:%s Failed to get valid json response to submitblock", cs->url, cs->port);
 		if (++retries < 5)
 			goto retry;
 		return ret;
 	}
-	res_val = json_object_get(val, "result");
-	if (!res_val) {
-		LOGWARNING("Failed to get result in json response to submitblock");
+	root = yyjson_doc_get_root(doc);
+	if (unlikely(!root)) {
+		LOGERR("Failed to get json root in response to submitblock");
 		if (++retries < 5) {
-			json_decref(val);
+			yyjson_doc_free(doc);
 			goto retry;
 		}
 		goto out;
 	}
-	if (!json_is_null(res_val)) {
-		res_ret = json_string_value(res_val);
+	res_val = yyjson_obj_get(root, "result");
+	if (!res_val) {
+		LOGWARNING("Failed to get result in json response to submitblock");
+		if (++retries < 5) {
+			yyjson_doc_free(doc);
+			goto retry;
+		}
+		goto out;
+	}
+	if (!yyjson_is_null(res_val)) {
+		res_ret = yyjson_get_str(res_val);
 		if (res_ret && strlen(res_ret)) {
 			LOGWARNING("SUBMIT BLOCK RETURNED: %s", res_ret);
 			/* Consider duplicate response as an accepted block */
@@ -357,7 +413,7 @@ retry:
 	LOGWARNING("BLOCK ACCEPTED!");
 	ret = true;
 out:
-	json_decref(val);
+	yyjson_doc_free(doc);
 	return ret;
 }
 
@@ -374,7 +430,7 @@ void precious_block(connsock_t *cs, const char *params)
 	len = strlen(params) + 64;
 	rpc_req = ckalloc(len);
 	sprintf(rpc_req, "{\"method\": \"preciousblock\", \"params\": [\"%s\"]}\n", params);
-	json_rpc_msg(cs, rpc_req);
+	yyjson_rpc_msg(cs, rpc_req);
 	dealloc(rpc_req);
 }
 
@@ -391,14 +447,15 @@ void submit_txn(connsock_t *cs, const char *params)
 	len = strlen(params) + 64;
 	rpc_req = ckalloc(len);
 	sprintf(rpc_req, "{\"method\": \"sendrawtransaction\", \"params\": [\"%s\"]}\n", params);
-	json_rpc_msg(cs, rpc_req);
+	yyjson_rpc_msg(cs, rpc_req);
 	dealloc(rpc_req);
 }
 
 char *get_txn(connsock_t *cs, const char *hash)
 {
 	char *rpc_req, *ret = NULL;
-	json_t *val, *res_val;
+	yyjson_doc *doc;
+	yyjson_val *root, *res_val;
 
 	if (unlikely(!cs->alive)) {
 		LOGDEBUG("Failed to get_txn due to connsock dead");
@@ -406,19 +463,25 @@ char *get_txn(connsock_t *cs, const char *hash)
 	}
 
 	ASPRINTF(&rpc_req, "{\"method\": \"getrawtransaction\", \"params\": [\"%s\"]}\n", hash);
-	val = json_rpc_response(cs, rpc_req);
+	doc = yyjson_rpc_response(cs, rpc_req);
 	dealloc(rpc_req);
-	if (!val) {
+	if (!doc) {
 		LOGDEBUG("%s:%s Failed to get valid json response to get_txn", cs->url, cs->port);
 		goto out;
 	}
-	res_val = json_object_get(val, "result");
-	if (res_val && !json_is_null(res_val) && json_is_string(res_val)) {
-		ret = strdup(json_string_value(res_val));
+	root = yyjson_doc_get_root(doc);
+	if (unlikely(!root)) {
+		LOGERR("Failed to get json root in response to get_txn");
+		goto out_free;
+	}
+	res_val = yyjson_obj_get(root, "result");
+	if (res_val && !yyjson_is_null(res_val) && yyjson_is_str(res_val)) {
+		ret = strdup(yyjson_get_str(res_val));
 		LOGDEBUG("get_txn for hash %s got data %s", hash, ret);
 	} else
 		LOGDEBUG("get_txn did not retrieve data for hash %s", hash);
-	json_decref(val);
+out_free:
+	yyjson_doc_free(doc);
 out:
 	return ret;
 }

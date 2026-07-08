@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2018,2023 Con Kolivas
+ * Copyright 2014-2018,2023,2026 Con Kolivas
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the Free
@@ -46,14 +46,13 @@
 void __attribute__((weak)) logmsg(int __maybe_unused loglevel, const char *fmt, ...)
 {
 	va_list ap;
-	char *buf;
 
 	va_start(ap, fmt);
-	VASPRINTF(&buf, fmt, ap);
+	vprintf(fmt, ap);
 	va_end(ap);
 
-	printf("%s\n", buf);
-	free(buf);
+	printf("\n");
+	fflush(stdout);
 }
 
 void rename_proc(const char *name)
@@ -1391,6 +1390,24 @@ void align_len(size_t *len)
 		*len += 4 - (*len % 4);
 }
 
+void *_ckrealloc(void *ptr, size_t size, const char *file, const char *func, const int line)
+{
+	int backoff = 1;
+	void *new_ptr;
+
+	while (42) {
+		new_ptr = realloc(ptr, size);
+		if (likely(new_ptr))
+			break;
+		if (backoff == 1)
+			fprintf(stderr, "Failed to realloc %d, retrying from %s %s:%d\n",
+				(int)size, file, func, line);
+		cksleep_ms(backoff);
+		backoff <<= 1;
+	}
+	return new_ptr;
+}
+
 /* Malloc failure should be fatal but keep backing off and retrying as the OS
  * will kill us eventually if it can't recover. */
 void realloc_strcat(char **ptr, const char *s)
@@ -1420,7 +1437,7 @@ void realloc_strcat(char **ptr, const char *s)
 		if (likely(new_ptr))
 			break;
 		if (backoff == 1)
-			fprintf(stderr, "Failed to realloc %d, retrying\n", (int)len);
+			fprintf(stderr, "Failed to realloc_strcat %d, retrying\n", (int)len);
 		cksleep_ms(backoff);
 		backoff <<= 1;
 	}
@@ -1637,7 +1654,9 @@ void b58tobin(char *b58bin, const char *b58)
 	}
 	*(b58bin++) = bin32[0] & 0xff;
 	for (i = 1; i < 7; i++) {
-		*((uint32_t *)b58bin) = htobe32(bin32[i]);
+		uint32_t val = htobe32(bin32[i]);
+
+		memcpy(b58bin, &val, sizeof(uint32_t));
 		b58bin += sizeof(uint32_t);
 	}
 }
@@ -1832,7 +1851,7 @@ int address_to_txn(char *p2h, const char *addr, const bool script, const bool se
 /*  For encoding nHeight into coinbase, return how many bytes were used */
 int ser_number(uchar *s, int32_t val)
 {
-	int32_t *i32 = (int32_t *)&s[1];
+	uint32_t v;
 	int len;
 
 	if (val < 0x80)
@@ -1843,7 +1862,10 @@ int ser_number(uchar *s, int32_t val)
 		len = 3;
 	else
 		len = 4;
-	*i32 = htole32(val);
+
+	v = htole32(val);
+	memcpy(&s[1], &v, sizeof(uint32_t));
+
 	s[0] = len++;
 	return len;
 }

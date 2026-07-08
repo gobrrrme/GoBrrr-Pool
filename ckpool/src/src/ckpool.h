@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2018,2023,2025 Con Kolivas
+ * Copyright 2014-2018,2023,2025-2026 Con Kolivas
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the Free
@@ -20,11 +20,15 @@
 
 #include "libckpool.h"
 #include "uthash.h"
+#include "yyjson.h"
+#include "yyjson_util.h"
 
 #define RPC_TIMEOUT 60
 
 struct ckpool_instance;
 typedef struct ckpool_instance ckpool_t;
+
+extern ckpool_t ckpool;
 
 struct ckmsg {
 	struct ckmsg *next;
@@ -43,24 +47,23 @@ struct unix_msg {
 	char *buf;
 };
 
+typedef struct ckmsgq ckmsgq_t;
+
 struct ckmsgq {
-	ckpool_t *ckp;
 	char name[16];
 	pthread_t pth;
 	mutex_t *lock;
 	pthread_cond_t *cond;
 	ckmsg_t *msgs;
-	void (*func)(ckpool_t *, void *);
+	void (*func)(void *);
 	int64_t messages;
 	bool active;
+	ckmsgq_t *primary;
 };
-
-typedef struct ckmsgq ckmsgq_t;
 
 typedef struct proc_instance proc_instance_t;
 
 struct proc_instance {
-	ckpool_t *ckp;
 	unixsock_t us;
 	char *processname;
 	char *sockname;
@@ -87,7 +90,6 @@ struct connsock {
 	int rcvbufsiz;
 	int sendbufsiz;
 
-	ckpool_t *ckp;
 	/* Semaphore used to serialise request/responses */
 	sem_t sem;
 
@@ -247,6 +249,8 @@ struct ckpool_instance {
 	char *btcsig; // Optional signature to add to coinbase
 	bool coinbase_valid; // Coinbase transaction confirmed valid
 
+	bool regtest;
+
 	/* Donation data */
 	char *donaddress; // Donation address
 	char *tndonaddress; // Testnet donation address
@@ -345,32 +349,28 @@ static const char __maybe_unused *stratum_msgs[] = {
 
 void get_timestamp(char *stamp);
 
-ckmsgq_t *create_ckmsgq(ckpool_t *ckp, const char *name, const void *func);
-ckmsgq_t *create_ckmsgqs(ckpool_t *ckp, const char *name, const void *func, const int count);
+ckmsgq_t *create_ckmsgq(const char *name, const void *func);
+ckmsgq_t *create_ckmsgqs(const char *name, const void *func, const int count);
 bool _ckmsgq_add(ckmsgq_t *ckmsgq, void *data, const char *file, const char *func, const int line);
 #define ckmsgq_add(ckmsgq, data) _ckmsgq_add(ckmsgq, data, __FILE__, __func__, __LINE__)
 bool ckmsgq_empty(ckmsgq_t *ckmsgq);
 unix_msg_t *get_unix_msg(proc_instance_t *pi);
 
-bool ping_main(ckpool_t *ckp);
+bool ping_main(void);
 void empty_buffer(connsock_t *cs);
-int set_sendbufsize(ckpool_t *ckp, const int fd, const int len);
-int set_recvbufsize(ckpool_t *ckp, const int fd, const int len);
+int set_sendbufsize(const int fd, const int len);
+int set_recvbufsize(const int fd, const int len);
 int read_socket_line(connsock_t *cs, float *timeout);
 void _queue_proc(proc_instance_t *pi, const char *msg, const char *file, const char *func, const int line);
 #define send_proc(pi, msg) _queue_proc(&(pi), msg, __FILE__, __func__, __LINE__)
 char *_send_recv_proc(const proc_instance_t *pi, const char *msg, int writetimeout, int readtimedout,
 		      const char *file, const char *func, const int line);
 #define send_recv_proc(pi, msg) _send_recv_proc(&(pi), msg, UNIX_WRITE_TIMEOUT, UNIX_READ_TIMEOUT, __FILE__, __func__, __LINE__)
-char *_send_recv_ckdb(const ckpool_t *ckp, const char *msg, const char *file, const char *func, const int line);
-#define send_recv_ckdb(ckp, msg) _send_recv_ckdb(ckp, msg, __FILE__, __func__, __LINE__)
-char *_ckdb_msg_call(const ckpool_t *ckp, const char *msg,  const char *file, const char *func,
-		     const int line);
-#define ckdb_msg_call(ckp, msg) _ckdb_msg_call(ckp, msg, __FILE__, __func__, __LINE__)
 
-json_t *json_rpc_call(connsock_t *cs, const char *rpc_req);
-json_t *json_rpc_response(connsock_t *cs, const char *rpc_req);
-void json_rpc_msg(connsock_t *cs, const char *rpc_req);
+yyjson_doc *yyjson_rpc_call(connsock_t *cs, const char *rpc_req);
+yyjson_doc *yyjson_rpc_response(connsock_t *cs, const char *rpc_req);
+void yyjson_rpc_msg(connsock_t *cs, const char *rpc_req);
+
 bool _send_json_msg(connsock_t *cs, const json_t *json_msg, const char *file, const char *func, const int line);
 #define send_json_msg(CS, JSON_MSG) _send_json_msg(CS, JSON_MSG, __FILE__, __func__, __LINE__)
 json_t *json_msg_result(const char *msg, json_t **res_val, json_t **err_val);
@@ -393,7 +393,7 @@ struct apimsg {
 	int sockd;
 };
 
-static inline void ckpool_api(ckpool_t __maybe_unused *ckp, apimsg_t __maybe_unused *apimsg) {};
+//static inline void ckpool_api(apimsg_t __maybe_unused *apimsg) {};
 
 static inline json_t *json_encode_errormsg(json_error_t *err_val) {
 	if (!err_val) return NULL;

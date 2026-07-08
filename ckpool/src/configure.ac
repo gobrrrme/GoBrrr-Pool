@@ -1,4 +1,4 @@
-AC_INIT([ckpool],[0.9.9],[kernel@kolivas.org])
+AC_INIT([ckpool],[1.1.1],[kernel@kolivas.org])
 
 AC_CANONICAL_TARGET
 AC_CONFIG_MACRO_DIR([m4])
@@ -26,7 +26,6 @@ fi
 dnl Checks for programs
 AC_PROG_CC
 # gl_EARLY - maybe later
-AC_PROG_GCC_TRADITIONAL
 AM_PROG_CC_C_O
 LT_INIT([disable-shared])
 

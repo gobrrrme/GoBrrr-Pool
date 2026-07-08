@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2018,2023 Con Kolivas
+ * Copyright 2014-2018,2023,2026 Con Kolivas
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the Free
@@ -178,6 +178,7 @@ static inline void flip_80(void *dest_p, const void *src_p)
 
 #define ckalloc(len) _ckalloc(len, __FILE__, __func__, __LINE__)
 #define ckzalloc(len) _ckzalloc(len, __FILE__, __func__, __LINE__)
+#define ckrealloc(ptr, size) _ckrealloc(ptr, size, __FILE__, __func__, __LINE__);
 
 #define dealloc(ptr) do { \
 	free(ptr); \
@@ -196,6 +197,7 @@ static inline void flip_80(void *dest_p, const void *src_p)
 
 void logmsg(int loglevel, const char *fmt, ...);
 
+/* Truncates messages greater than DEFLOGBUFSIZ */
 #define DEFLOGBUFSIZ 512
 
 #define LOGMSGSIZ(__siz, __lvl, __fmt, ...) do { \
@@ -279,7 +281,8 @@ enum share_err {
 	SE_NTIME_INVALID,
 	SE_DUPE,
 	SE_HIGH_DIFF,
-	SE_INVALID_VERSION_MASK
+	SE_INVALID_VERSION_MASK,
+	SE_NO_WORKBASE
 };
 
 static const char __maybe_unused *share_errs[] = {
@@ -298,10 +301,44 @@ static const char __maybe_unused *share_errs[] = {
 	"Ntime out of range",
 	"Duplicate",
 	"Above target",
-	"Invalid version mask"
+	"Invalid version mask",
+	"No workbase"
 };
 
 #define SHARE_ERR(x) share_errs[((x) + 9)]
+
+/* Stratum V1 error codes for mining.submit responses.
+ * Origin: slush pool Stratum mining protocol specification
+ * (https://web.archive.org/web/20150307191254/http://mining.bitcoin.cz/stratum-mining)
+ *
+ *   20 - Other/Unknown
+ *   21 - Job not found (=stale)
+ *   22 - Duplicate share
+ *   23 - Low difficulty share
+ *   24 - Unauthorized worker
+ *   25 - Not subscribed
+ */
+static const int __maybe_unused share_err_codes[] = {
+	20, // SE_INVALID_NONCE2       - Other/Unknown
+	24, // SE_WORKER_MISMATCH      - Unauthorized worker
+	20, // SE_NO_NONCE             - Other/Unknown
+	20, // SE_NO_NTIME             - Other/Unknown
+	20, // SE_NO_NONCE2            - Other/Unknown
+	20, // SE_NO_JOBID             - Other/Unknown
+	20, // SE_NO_USERNAME          - Other/Unknown
+	20, // SE_INVALID_SIZE         - Other/Unknown
+	20, // SE_NOT_ARRAY            - Other/Unknown
+	 0, // SE_NONE
+	21, // SE_INVALID_JOBID        - Job not found
+	21, // SE_STALE                - Job not found (stale)
+	20, // SE_NTIME_INVALID        - Other/Unknown
+	22, // SE_DUPE                 - Duplicate share
+	23, // SE_HIGH_DIFF            - Low difficulty share
+	20, // SE_INVALID_VERSION_MASK - Other/Unknown
+	20, // SE_NO_WORKBASE          - Other/Unknown
+};
+
+#define SHARE_ERR_CODE(x) share_err_codes[((x) + 9)]
 
 typedef struct ckmutex mutex_t;
 
@@ -556,6 +593,7 @@ bool rotating_log(const char *path, const char *msg);
 void align_len(size_t *len);
 void realloc_strcat(char **ptr, const char *s);
 void trail_slash(char **buf);
+void *_ckrealloc(void *ptr, size_t size, const char *file, const char *func, const int line);
 void *_ckalloc(size_t len, const char *file, const char *func, const int line);
 void *json_ckalloc(size_t size);
 void *_ckzalloc(size_t len, const char *file, const char *func, const int line);

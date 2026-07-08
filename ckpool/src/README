@@ -66,6 +66,8 @@ from direct communication with clients.
 
 - Library for use by other software.
 
+See the related file README-CKPOOL_MODES for detailed explanations of the
+various modes of operation.
 
 ---
 Features:
