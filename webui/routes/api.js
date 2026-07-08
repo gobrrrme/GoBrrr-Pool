@@ -567,10 +567,19 @@ router.get('/nodeinfo', async (req, res) => {
         // Format version: 290200 → "29.2.0"
         const v = netinfo.version;
         const versionStr = `${Math.floor(v / 10000)}.${Math.floor((v % 10000) / 100)}.${v % 100}`;
+        const rawSubversion = netinfo.subversion.replace(/\//g, '');
+        let implementation = 'Bitcoin Node';
+
+        if (rawSubversion.includes('Knots:')) {
+            implementation = 'Bitcoin Knots';
+        } else if (rawSubversion.includes('Satoshi:')) {
+            implementation = 'Bitcoin Core';
+        }
 
         const data = {
+            implementation,
             version: versionStr,
-            subversion: netinfo.subversion.replace(/\//g, '').replace('Satoshi:', ''),
+            subversion: rawSubversion.replace('Satoshi:', ''),
             connections: netinfo.connections,
             connections_in: netinfo.connections_in,
             connections_out: netinfo.connections_out,

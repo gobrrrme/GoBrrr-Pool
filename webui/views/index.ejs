@@ -73,7 +73,7 @@
             <div class="pool-section-label">Bitcoin Node</div>
             <div class="node-info-grid">
                 <div class="node-info-item">
-                    <span class="fee-label">Bitcoin Core</span>
+                    <span class="fee-label" id="node-implementation-label">Bitcoin Node</span>
                     <span class="fee-value" id="node-version">—</span>
                 </div>
                 <div class="node-info-item">
@@ -357,6 +357,7 @@
             const data = await res.json();
             if (!data.success || !data.data) return;
             const n = data.data;
+            updateElement('node-implementation-label', n.implementation || 'Bitcoin Node');
             updateElement('node-version', n.version);
             updateElement('node-subversion', n.subversion);
             updateElement('node-connections', n.connections);
